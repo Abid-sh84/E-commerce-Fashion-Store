@@ -30,7 +30,7 @@ if (!process.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET.trim()
 
 if (!process.env.GOOGLE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI.trim() === '') {
   console.warn('Warning: GOOGLE_REDIRECT_URI environment variable is not set. Using default value.');
-  process.env.GOOGLE_REDIRECT_URI = 'http://localhost:5000/api/users/google/callback';
+  process.env.GOOGLE_REDIRECT_URI = process.env.API_URL ? `${process.env.API_URL}/api/users/google/callback` : 'http://localhost:5000/api/users/google/callback';
 }
 
 if (!process.env.FRONTEND_URL) {

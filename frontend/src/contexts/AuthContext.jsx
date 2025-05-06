@@ -175,8 +175,8 @@ export function AuthProvider({ children }) {
       localStorage.setItem("redirectAfterLogin", currentPath);
     }
     
-    // Redirect to the backend's Google auth endpoint
-    window.location.href = "http://localhost:5000/api/users/google";
+    // Redirect to the backend's Google auth endpoint using the environment variable
+    window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/google`;
   };
 
   const loginWithGoogle = async (token) => {

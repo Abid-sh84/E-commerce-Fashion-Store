@@ -89,8 +89,8 @@ const ResetPasswordPage = () => {
       
       try {
         setTokenVerifying(true);
-        // Fix: Use consistent URL format and remove /api from the URL since it's already in the endpoint
-        await axios.get(`http://localhost:5000/api/users/reset-password/${token}/verify`);
+        // Use API_URL from config instead of hardcoded URL
+        await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/reset-password/${token}/verify`);
         setTokenValid(true);
       } catch (err) {
         console.error("Token verification error:", err);
@@ -127,8 +127,8 @@ const ResetPasswordPage = () => {
       setIsLoading(true);
       setError("");
       
-      // Fix: Use consistent URL format
-      await axios.post(`http://localhost:5000/api/users/reset-password/${token}`, {
+      // Use environment variable for API URL
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/reset-password/${token}`, {
         password
       });
       

@@ -80,7 +80,7 @@ const AdminSettingsPage = () => {
     
     try {
       // In a real app, you would save to your API
-      // await axios.post("http://localhost:5000/api/settings", {
+      // await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/settings`, {
       //   general: generalSettings,
       //   email: emailSettings,
       //   payment: paymentSettings,

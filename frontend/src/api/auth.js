@@ -1,7 +1,5 @@
+import { API_URL, API_BASE_URL } from './config';
 import axios from 'axios';
-
-// Use Vite's environment variable format
-const API_URL = 'http://localhost:5000/api';
 
 console.log('API URL being used:', API_URL);
 
@@ -163,7 +161,7 @@ if (token) {
  * This doesn't make an API call directly but redirects to the Google OAuth URL
  */
 export const initiateGoogleAuth = () => {
-  window.location.href = "http://localhost:5000/api/users/google";
+  window.location.href = `${API_URL}/api/users/google`;
 };
 
 /**
@@ -181,7 +179,7 @@ export const loginWithGoogle = async (token) => {
     }
     
     // Get user data from API
-    const response = await fetch("http://localhost:5000/api/users/me", {
+    const response = await fetch(`${API_URL}/api/users/me`, {
       headers: {
         Authorization: `Bearer ${token}`
       }

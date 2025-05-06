@@ -131,10 +131,8 @@ const LoginPage = () => {
       setForgotEmailLoading(true);
       
       // Always use the hardcoded backend URL to avoid dependency on env variables
-      await axios.post(`http://localhost:5000/api/users/forgot-password`, { 
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/forgot-password`, { 
         email: forgotEmail 
-      }, {
-        timeout: 15000 // 15 seconds timeout
       });
       
       // Always show success even if there might be a backend error

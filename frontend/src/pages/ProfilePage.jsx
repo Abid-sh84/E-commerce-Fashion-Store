@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext"
 import { getUserOrders } from "../api/orders" // Import the API function for getting user orders
 import { useRecentlyViewed } from "../contexts/RecentlyViewedContext"
 import axios from "axios"
+import { API_URL, API_BASE_URL } from '../api/config';
 
 const RecentlyViewedProducts = lazy(() => import("../components/RecentlyViewedProducts"))
 
@@ -29,13 +30,13 @@ const DEFAULT_AVATAR = "https://res.cloudinary.com/dkmakj50l/image/upload/v17444
 
 // Fix for process.env not defined error
 // Replace process.env with direct API URL or use import.meta.env for Vite projects
-const API_URL = import.meta.env?.VITE_API_URL || "http://localhost:5000/api"
+const API_ENDPOINT = `${API_URL}/api`
 
 // Address API functions - Updated with correct endpoints to match backend routes
 const getAddresses = async () => {
   const token = localStorage.getItem("token")
   try {
-    const response = await axios.get(`${API_URL}/users/addresses`, {
+    const response = await axios.get(`${API_ENDPOINT}/users/addresses`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     return response.data
@@ -48,7 +49,7 @@ const getAddresses = async () => {
 const addAddress = async (addressData) => {
   const token = localStorage.getItem("token")
   try {
-    const response = await axios.post(`${API_URL}/users/addresses`, addressData, {
+    const response = await axios.post(`${API_ENDPOINT}/users/addresses`, addressData, {
       headers: { Authorization: `Bearer ${token}` }
     })
     return response.data
@@ -61,7 +62,7 @@ const addAddress = async (addressData) => {
 const updateAddress = async (id, addressData) => {
   const token = localStorage.getItem("token")
   try {
-    const response = await axios.put(`${API_URL}/users/addresses/${id}`, addressData, {
+    const response = await axios.put(`${API_ENDPOINT}/users/addresses/${id}`, addressData, {
       headers: { Authorization: `Bearer ${token}` }
     })
     return response.data
@@ -74,7 +75,7 @@ const updateAddress = async (id, addressData) => {
 const deleteAddress = async (id) => {
   const token = localStorage.getItem("token")
   try {
-    const response = await axios.delete(`${API_URL}/users/addresses/${id}`, {
+    const response = await axios.delete(`${API_ENDPOINT}/users/addresses/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     return response.data
@@ -87,7 +88,7 @@ const deleteAddress = async (id) => {
 const setDefaultAddress = async (id) => {
   const token = localStorage.getItem("token")
   try {
-    const response = await axios.put(`${API_URL}/users/addresses/${id}/default`, {}, {
+    const response = await axios.put(`${API_ENDPOINT}/users/addresses/${id}/default`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     })
     return response.data
