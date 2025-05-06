@@ -1,0 +1,11 @@
+/* Global styles for your application */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add any additional global styles below */
+.comic-button {
+  @apply bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-bold py-2 px-4 rounded-md transform hover:scale-105 transition-all duration-200;
+}
+
+/* Add other custom global styles as needed */
