@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getAllOrders, updateOrderStatus } from "../../api/admin";
+import { getAllOrders, updateOrderStatus, deleteOrder } from "../../api/admin";
 
 const AdminOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -12,6 +12,9 @@ const AdminOrdersPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState("createdAt");
   const [sortDirection, setSortDirection] = useState("desc");
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteSuccess, setDeleteSuccess] = useState("");
   const ordersPerPage = 10;
 
   useEffect(() => {
@@ -152,6 +155,30 @@ const AdminOrdersPage = () => {
     return "bg-neutral-900/30 text-neutral-400 border border-neutral-700/40";
   };
 
+  // Handle delete order
+  const handleDeleteOrder = async (orderId) => {
+    if (!orderId) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteOrder(orderId);
+      
+      // Update local state by removing the order
+      setOrders(prevOrders => prevOrders.filter(order => order._id !== orderId));
+      setFilteredOrders(prevFilteredOrders => prevFilteredOrders.filter(order => order._id !== orderId));
+      setConfirmDelete(null);
+      setDeleteSuccess("Order deleted successfully");
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setDeleteSuccess(""), 3000);
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      setError("Failed to delete order. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Pagination logic with console logging for debugging
   const indexOfLastOrder = currentPage * ordersPerPage;
   const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -216,6 +243,12 @@ const AdminOrdersPage = () => {
       {error && (
         <div className="bg-red-900/30 border border-red-700/50 text-red-400 px-4 py-3 rounded-md mb-6">
           {error}
+        </div>
+      )}
+
+      {deleteSuccess && (
+        <div className="bg-green-900/30 border border-green-700/50 text-green-400 px-4 py-3 rounded-md mb-6">
+          {deleteSuccess}
         </div>
       )}
 
@@ -313,6 +346,12 @@ const AdminOrdersPage = () => {
                       >
                         View
                       </Link>
+                      <button
+                        onClick={() => setConfirmDelete(order._id)}
+                        className="text-red-500 hover:text-red-400"
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -382,6 +421,43 @@ const AdminOrdersPage = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-neutral-900 p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-xl font-bold text-white mb-4">Confirm Delete</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this order? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                className="px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteOrder(confirmDelete)}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md flex items-center"
+              >
+                {isDeleting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

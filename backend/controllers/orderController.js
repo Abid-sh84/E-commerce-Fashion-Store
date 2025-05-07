@@ -381,6 +381,26 @@ const markCashOnDeliveryOrderAsPaid = asyncHandler(async (req, res) => {
   res.json(updatedOrder);
 });
 
+// @desc    Delete an order (admin only)
+// @route   DELETE /api/orders/:id
+// @access  Private/Admin
+const deleteOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  
+  if (!order) {
+    res.status(404);
+    throw new Error('Order not found');
+  }
+  
+  // Delete associated cancellation requests if any
+  await CancelOrder.deleteMany({ order: req.params.id });
+  
+  // Delete the order
+  await Order.deleteOne({ _id: req.params.id });
+  
+  res.json({ message: 'Order removed' });
+});
+
 export {
   createOrder,
   getOrderById,
@@ -393,4 +413,5 @@ export {
   getCancellationRequests,
   cancelOrder,
   markCashOnDeliveryOrderAsPaid,
+  deleteOrder,
 };

@@ -6,8 +6,11 @@ import { useNavigate, Link } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { getUserOrders } from "../api/orders" // Import the API function for getting user orders
 import { useRecentlyViewed } from "../contexts/RecentlyViewedContext"
+import { useCart } from "../contexts/CartContext" // Import useCart hook
 import axios from "axios"
 import { API_URL, API_BASE_URL } from '../api/config';
+import { useWishlist } from "../contexts/WishlistContext";
+import { removeFromWishlist as apiRemoveFromWishlist } from "../api/user"; // Import only the functions that exist
 
 const RecentlyViewedProducts = lazy(() => import("../components/RecentlyViewedProducts"))
 
@@ -101,8 +104,11 @@ const setDefaultAddress = async (id) => {
 const ProfilePage = () => {
   const { currentUser, logout, updateUserAvatar, updateUserProfile, updateUserPassword } = useAuth()
   const { recentlyViewedItems } = useRecentlyViewed() // We only need the items, no syncing needed
+  const { wishlistItems, isLoading: wishlistLoading, error: wishlistError, refresh: fetchWishlistItems } = useWishlist()
+  const { addToCart } = useCart() // Get addToCart function from the CartContext
   const navigate = useNavigate()
   const modalRef = useRef(null)
+  const avatarModalRef = useRef(null) // New ref for avatar modal
 
   const [activeTab, setActiveTab] = useState("profile")
   const [name, setName] = useState(currentUser?.name || "")
@@ -115,7 +121,8 @@ const ProfilePage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [ordersError, setOrdersError] = useState(null)
-
+  const [showAvatarModal, setShowAvatarModal] = useState(false) // New state for avatar modal
+  
   // Address states
   const [addresses, setAddresses] = useState([])
   const [addressesLoading, setAddressesLoading] = useState(false)
@@ -155,6 +162,8 @@ const ProfilePage = () => {
       fetchOrders();
     } else if (activeTab === "addresses") {
       fetchAddresses();
+    } else if (activeTab === "wishlist") {
+      fetchWishlistItems();
     }
   }, [activeTab]);
   
@@ -474,14 +483,125 @@ const ProfilePage = () => {
     };
   }, [showAddressModal]);
 
+  // Close avatar modal when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (avatarModalRef.current && !avatarModalRef.current.contains(event.target)) {
+        setShowAvatarModal(false);
+      }
+    }
+
+    // Bind the event listener
+    if (showAvatarModal) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    
+    return () => {
+      // Unbind the event listener on cleanup
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showAvatarModal]);
+
+  // Function to handle avatar selection and close modal
+  const handleSelectAvatar = (avatar) => {
+    setSelectedAvatar(avatar.image);
+    setShowAvatarModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-neutral-950 text-white py-12">
-      <div id="success-toast" className="fixed top-24 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500 hidden z-50 flex items-center">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div id="success-toast" className="fixed top-24 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500 hidden z-50">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
         </svg>
         Profile updated successfully!
       </div>
+
+      {/* Avatar Selection Modal */}
+      {showAvatarModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+          <div 
+            ref={avatarModalRef} 
+            className="bg-neutral-900 rounded-lg shadow-xl border border-neutral-700 w-full max-w-2xl overflow-hidden"
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white">Choose Your Avatar</h3>
+                <button 
+                  onClick={() => setShowAvatarModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto p-2">
+                {avatars.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    type="button"
+                    onClick={() => handleSelectAvatar(avatar)}
+                    className={`relative overflow-hidden rounded-lg transform transition-all duration-300 ${
+                      selectedAvatar === avatar.image
+                        ? "ring-2 ring-amber-500 scale-105"
+                        : "hover:ring-1 hover:ring-amber-400 hover:scale-102"
+                    }`}
+                  >
+                    <div className="p-4 bg-neutral-800 text-center overflow-hidden group">
+                      <div className="relative w-full overflow-hidden rounded-full mb-3 aspect-square">
+                        <div className={`absolute inset-0 rounded-full ${selectedAvatar === avatar.image ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30' : ''}`}></div>
+                        <img
+                          src={avatar.image}
+                          alt={avatar.name}
+                          className="w-full h-full object-cover rounded-full aspect-square relative z-10 transition-all duration-300 group-hover:scale-110"
+                        />
+                      </div>
+                      <p className="text-xs font-semibold text-white truncate">{avatar.name}</p>
+                    </div>
+                    {selectedAvatar === avatar.image && (
+                      <div className="absolute inset-0 bg-amber-700/20 flex items-center justify-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-8 w-8 text-amber-500 drop-shadow-lg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarModal(false)}
+                  className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg transition-all duration-300 mr-3"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarModal(false)}
+                  className="px-4 py-2 bg-amber-700 hover:bg-amber-600 text-white font-medium rounded-lg transition-all duration-300"
+                >
+                  Select Avatar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Address Form Modal */}
       {showAddressModal && (
@@ -905,51 +1025,29 @@ const ProfilePage = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-3">
-                          Choose Your Avatar
+                          Avatar
                         </label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                          {avatars.map((avatar) => (
+                        <div className="flex items-center space-x-4">
+                          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500">
+                            <img
+                              src={selectedAvatar || DEFAULT_AVATAR}
+                              alt={currentAvatarObject.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-300 mb-2">Current: <span className="text-amber-500">{currentAvatarObject.name}</span></p>
                             <button
-                              key={avatar.id}
                               type="button"
-                              onClick={() => setSelectedAvatar(avatar.image)}
-                              className={`relative overflow-hidden rounded-lg transform transition-all duration-300 ${
-                                selectedAvatar === avatar.image
-                                  ? "ring-2 ring-amber-500 scale-105"
-                                  : "hover:ring-1 hover:ring-amber-400 hover:scale-102"
-                              }`}
+                              onClick={() => setShowAvatarModal(true)}
+                              className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-sm font-medium rounded-lg transition-all duration-300 flex items-center"
                             >
-                              <div className="p-4 bg-neutral-800 text-center overflow-hidden group">
-                                <div className="relative w-full overflow-hidden rounded-full mb-3 aspect-square">
-                                  <div className={`absolute inset-0 rounded-full ${selectedAvatar === avatar.image ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30' : ''}`}></div>
-                                  <img
-                                    src={avatar.image}
-                                    alt={avatar.name}
-                                    className="w-full h-full object-cover rounded-full aspect-square relative z-10 transition-all duration-300 group-hover:scale-110"
-                                  />
-                                </div>
-                                <p className="text-xs font-semibold text-white truncate">{avatar.name}</p>
-                              </div>
-                              {selectedAvatar === avatar.image && (
-                                <div className="absolute inset-0 bg-amber-700/20 flex items-center justify-center">
-                                  <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-8 w-8 text-amber-500 drop-shadow-lg"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M5 13l4 4L19 7"
-                                    />
-                                  </svg>
-                                </div>
-                              )}
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                              Change Avatar
                             </button>
-                          ))}
+                          </div>
                         </div>
                       </div>
 
@@ -1423,46 +1521,185 @@ const ProfilePage = () => {
                 </div>
               )}
 
-              {/* Wishlist Tab - no changes needed */}
+              {/* Wishlist Tab */}
               {activeTab === "wishlist" && (
                 <div>
                   <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600 mb-6">
                     Your Wishlist
                   </h2>
+                  
+                  {wishlistLoading ? (
+                    <div className="flex justify-center items-center py-10">
+                      <div className="spinner h-10 w-10 border-4 border-t-4 border-neutral-800 border-t-amber-500 rounded-full animate-spin"></div>
+                    </div>
+                  ) : wishlistError ? (
+                    <div className="bg-red-900/30 border border-red-700/50 text-red-300 px-4 py-3 rounded-lg mb-6">
+                      <p>{wishlistError}</p>
+                      <button 
+                        onClick={fetchWishlistItems}
+                        className="mt-2 text-sm underline hover:text-red-200"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  ) : wishlistItems.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {wishlistItems.map((item) => (
+                          <div key={item._id || item.id} className="group">
+                            <div className="bg-neutral-900 rounded-lg overflow-hidden border border-neutral-800 transition-all duration-300 hover:border-amber-600">
+                              <div className="relative">
+                                <Link to={`/product/${item._id || item.id}`}>
+                                  <div className="relative overflow-hidden h-64">
+                                    <img
+                                      src={item.images?.[0] || "/placeholder.svg"}
+                                      alt={item.name}
+                                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 to-transparent opacity-60"></div>
+                                  </div>
+                                </Link>
+                                
+                                <button
+                                  onClick={() => {
+                                    apiRemoveFromWishlist(item._id || item.id)
+                                      .then(() => {
+                                        fetchWishlistItems();
+                                      })
+                                      .catch(error => {
+                                        console.error("Error removing from wishlist:", error);
+                                      });
+                                  }}
+                                  className="absolute top-3 right-3 bg-neutral-800/80 hover:bg-neutral-700 p-2 rounded-full transition-colors"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5 text-red-400 hover:text-red-300"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div className="col-span-full">
-                      <div className="text-center py-16 bg-neutral-900 rounded-lg border border-amber-800/30">
-                        <div className="relative mb-6">
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="h-24 w-24 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 opacity-20 blur-xl"></div>
+                              <div className="p-5">
+                                <Link to={`/product/${item._id || item.id}`} className="block mb-2">
+                                  <h3 className="font-bold text-lg text-white group-hover:text-amber-500 transition-colors">{item.name}</h3>
+                                </Link>
+
+                                {item.universe && (
+                                  <span className="inline-block text-xs font-medium bg-neutral-800 text-gray-300 px-3 py-1 rounded-full">
+                                    {item.universe}
+                                  </span>
+                                )}
+
+                                <div className="flex items-center mt-4">
+                                  <div className="flex text-amber-500">
+                                    {Array(5).fill(null).map((_, i) => (
+                                      <svg key={i} xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${i < (item.rating || 4) ? 'text-amber-500' : 'text-gray-600'}`} viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118l-2.8-2.034c-.783-.57-.38-1.81.588-1.81h3.462a1 1 0 00.95-.69l1.07-3.292z" />
+                                      </svg>
+                                    ))}
+                                    <span className="ml-2 text-xs text-gray-400">({item.reviewCount || 0})</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between mt-4">
+                                  <div>
+                                    {item.discount > 0 ? (
+                                      <div className="flex items-center">
+                                        <span className="font-bold text-lg text-amber-500">
+                                          ${(item.price * (1 - item.discount / 100)).toFixed(2)}
+                                        </span>
+                                        <span className="text-gray-500 line-through ml-2 text-sm">${item.price?.toFixed(2)}</span>
+                                      </div>
+                                    ) : (
+                                      <span className="font-bold text-lg text-amber-500">${item.price?.toFixed(2) || "29.99"}</span>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <button
+                                  onClick={() => {
+                                    // Use the useCart context function instead of require
+                                    if (addToCart) {
+                                      addToCart({
+                                        ...item,
+                                        quantity: 1,
+                                        selectedSize: item.sizes?.[0] || "M"
+                                      });
+                                      
+                                      const successToast = document.getElementById('success-toast');
+                                      if (successToast) {
+                                        successToast.textContent = 'Item added to cart!';
+                                        successToast.classList.remove('hidden');
+                                        setTimeout(() => {
+                                          successToast.classList.add('hidden');
+                                        }, 3000);
+                                      }
+                                    }
+                                  }}
+                                  className="w-full mt-4 bg-amber-700 hover:bg-amber-600 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                  </svg>
+                                  <span>Add to Cart</span>
+                                </button>
+                              </div>
+                            </div>
                           </div>
+                        ))}
+                      </div>
+                      
+                      <div className="mt-8 text-center">
+                        <Link to="/products" className="inline-flex items-center px-6 py-3 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg transition-all">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-16 w-16 mx-auto text-amber-500 relative"
+                            className="h-5 w-5 mr-2"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                            />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                           </svg>
-                        </div>
-                        <h3 className="text-xl font-medium text-white mb-3">Your wishlist awaits heroes!</h3>
-                        <p className="text-gray-300 mb-6 max-w-md mx-auto">Save your favorite cosmic collectibles and superhero gear for your next adventure.</p>
-                        <Link to="/products" className="px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg transform hover:scale-105 transition-all duration-300 inline-flex items-center shadow-lg">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                          </svg>
-                          Explore Hero Gear
+                          Continue Shopping
                         </Link>
                       </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-16 bg-neutral-900 rounded-lg border border-amber-800/30">
+                      <div className="relative mb-6">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="h-24 w-24 rounded-full bg-gradient-to-r from-amber-400 to-amber-600 opacity-20 blur-xl"></div>
+                        </div>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-16 w-16 mx-auto text-amber-500 relative"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                          />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-medium text-white mb-3">Your wishlist is empty!</h3>
+                      <p className="text-gray-300 mb-6 max-w-md mx-auto">Save your favorite cosmic collectibles and superhero gear for your next adventure.</p>
+                      <Link to="/products" className="px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold rounded-lg transform hover:scale-105 transition-all duration-300 inline-flex items-center shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        Explore Hero Gear
+                      </Link>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1480,11 +1717,11 @@ const ProfilePage = () => {
                     <div className="h-4 bg-neutral-800 rounded w-3/4"></div>
                     <div className="h-4 bg-neutral-800 rounded w-1/2"></div>
                   </div>
-</div>
+                </div>
               ))}
             </div>
           }>
-           <RecentlyViewedProducts currentProductId={null} showClearButton={true} />
+            <RecentlyViewedProducts currentProductId={null} showClearButton={true} />
           </Suspense>
         </section>
       </div>

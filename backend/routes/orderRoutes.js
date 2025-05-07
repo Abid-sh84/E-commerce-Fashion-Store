@@ -11,6 +11,7 @@ import {
   getCancellationRequests,
   cancelOrder,
   markCashOnDeliveryOrderAsPaid,
+  deleteOrder,
 } from '../controllers/orderController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 import mongoose from 'mongoose';
@@ -29,7 +30,8 @@ router.route('/cancellations')
   .get(protect, admin, getCancellationRequests);
 
 router.route('/:id')
-  .get(protect, getOrderById);
+  .get(protect, getOrderById)
+  .delete(protect, admin, deleteOrder);
 
 router.route('/:id/pay')
   .put(protect, updateOrderToPaid);

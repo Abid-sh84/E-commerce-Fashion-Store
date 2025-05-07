@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getOrderById, markCashOnDeliveryOrderAsPaid } from "../../api/orders";
-import { updateOrderStatus } from "../../api/admin";
+import { updateOrderStatus, deleteOrder } from "../../api/admin";
 import InvoiceModal from "../../components/InvoiceModal";
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const AdminOrderDetailsPage = () => {
   const { id } = useParams();
@@ -14,6 +16,7 @@ const AdminOrderDetailsPage = () => {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [error, setError] = useState(null);
   const [showInvoice, setShowInvoice] = useState(false);
+  const [showCustomerInfo, setShowCustomerInfo] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -113,6 +116,59 @@ const AdminOrderDetailsPage = () => {
     }
   };
 
+  // Function to generate and download invoice directly
+  const generateInvoice = () => {
+    if (!order) return;
+    
+    const doc = new jsPDF();
+    
+    // Add header
+    doc.setFontSize(20);
+    doc.text('INVOICE', 105, 20, { align: 'center' });
+    
+    // Add order info
+    doc.setFontSize(12);
+    doc.text(`Order #: ${order._id}`, 20, 40);
+    doc.text(`Date: ${formatDate(order.createdAt)}`, 20, 50);
+    doc.text(`Status: ${order.status || 'Processing'}`, 20, 60);
+    
+    // Add customer info
+    doc.text('Customer Information:', 20, 80);
+    doc.text(`Name: ${order.user.name}`, 20, 90);
+    doc.text(`Email: ${order.user.email}`, 20, 100);
+    doc.text(`Address: ${order.shippingAddress.address}, ${order.shippingAddress.city}, ${order.shippingAddress.state || ''}, ${order.shippingAddress.zip || order.shippingAddress.postalCode}`, 20, 110);
+    
+    // Add order items
+    const tableColumn = ["Item", "Quantity", "Price", "Total"];
+    const tableRows = [];
+    
+    order.orderItems.forEach(item => {
+      const itemData = [
+        item.name,
+        item.quantity,
+        `$${formatPrice(item.price)}`,
+        `$${formatPrice(item.price * item.quantity)}`
+      ];
+      tableRows.push(itemData);
+    });
+    
+    autoTable(doc, {
+      startY: 130,
+      head: [tableColumn],
+      body: tableRows,
+    });
+    
+    // Add totals
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.text(`Subtotal: $${formatPrice(order.itemsPrice)}`, 120, finalY);
+    doc.text(`Shipping: $${formatPrice(order.shippingPrice)}`, 120, finalY + 10);
+    doc.text(`Tax: $${formatPrice(order.taxPrice)}`, 120, finalY + 20);
+    doc.text(`Total: $${formatPrice(order.totalPrice)}`, 120, finalY + 30);
+    
+    // Save the PDF
+    doc.save(`Invoice-Order-${order._id}.pdf`);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -149,6 +205,46 @@ const AdminOrderDetailsPage = () => {
     <>
       {showInvoice && order && (
         <InvoiceModal order={order} onClose={() => setShowInvoice(false)} />
+      )}
+      
+      {/* Customer Info Modal */}
+      {showCustomerInfo && order && order.user && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-neutral-900 rounded-lg border border-neutral-800 w-full max-w-md overflow-hidden shadow-xl">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white">Customer Profile</h3>
+                <button 
+                  onClick={() => setShowCustomerInfo(false)}
+                  className="text-neutral-400 hover:text-white"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="flex flex-col items-center mb-6">
+                <div className="h-24 w-24 rounded-full bg-neutral-800 overflow-hidden mb-4 border-2 border-amber-500">
+                  <img 
+                    src={order.user.avatar || "https://res.cloudinary.com/dkmakj50l/image/upload/v1744447073/superman_avatar_geflb0.png"} 
+                    alt={order.user.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <h4 className="text-xl font-bold text-white">{order.user.name}</h4>
+                <p className="text-neutral-400">{order.user.email}</p>
+              </div>
+              
+              <button
+                onClick={() => setShowCustomerInfo(false)}
+                className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-md transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -309,15 +405,15 @@ const AdminOrderDetailsPage = () => {
                 <p className="text-sm text-neutral-400">Phone</p>
                 <p className="text-white">{order.shippingAddress.phone || "Not provided"}</p>
               </div>
-              <Link 
-                to={`/admin/users/${order.user._id}`} 
+              <button 
+                onClick={() => setShowCustomerInfo(true)}
                 className="text-blue-500 hover:text-blue-400 text-sm flex items-center"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                 </svg>
                 View Customer Profile
-              </Link>
+              </button>
             </div>
           </div>
 
@@ -382,6 +478,15 @@ const AdminOrderDetailsPage = () => {
                 {isMarkingPaid ? "Processing..." : "Mark Cash Payment as Received"}
               </button>
             )}
+            <button 
+              onClick={generateInvoice}
+              className="w-full bg-blue-700 hover:bg-blue-600 text-white py-2 px-4 rounded-md flex justify-center items-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Download Invoice as PDF
+            </button>
           </div>
         </div>
       </div>

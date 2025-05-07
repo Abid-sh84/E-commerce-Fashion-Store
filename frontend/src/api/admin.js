@@ -401,3 +401,18 @@ export const deleteReview = async (productId, reviewId) => {
     throw new Error(error.response?.data?.message || 'Failed to delete review');
   }
 };
+
+/**
+ * Delete an order
+ * @param {string} orderId - Order ID to delete
+ * @returns {Promise} - Confirmation message
+ */
+export const deleteOrder = async (orderId) => {
+  try {
+    const response = await apiClient.delete(`/orders/${orderId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    throw new Error(error.response?.data?.message || 'Failed to delete order');
+  }
+};
