@@ -30,7 +30,9 @@ apiClient.interceptors.request.use(
       console.warn('No authentication token found for request:', config.url);
     }
     
-    console.log(`Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`);
+    if (import.meta.env.DEV) {
+      console.log(`Making ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`);
+    }
     return config;
   },
   (error) => {
@@ -44,25 +46,39 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('API Error:', error.message);
-    
-    // Add more detailed debugging information
-    if (error.response) {
-      console.error(`Status: ${error.response.status}`);
-      console.error(`Data:`, error.response.data);
-      console.error(`Request URL: ${error.config.baseURL}${error.config.url}`);
-      console.error(`Request Method: ${error.config.method.toUpperCase()}`);
+    if (import.meta.env.DEV) {
+      console.error('API Error:', error.message);
       
-      if (error.config.data) {
-        try {
-          const requestData = JSON.parse(error.config.data);
-          console.error('Request Payload:', requestData);
-        } catch (e) {
-          console.error('Request Payload:', error.config.data);
+      // Add more detailed debugging information
+      if (error.response) {
+        console.error(`Status: ${error.response.status}`);
+        console.error(`Data:`, error.response.data);
+        console.error(`Request URL: ${error.config.baseURL}${error.config.url}`);
+        console.error(`Request Method: ${error.config.method.toUpperCase()}`);
+        
+        if (error.config.data) {
+          try {
+            const requestData = JSON.parse(error.config.data);
+            console.error('Request Payload:', requestData);
+          } catch (e) {
+            console.error('Request Payload:', error.config.data);
+          }
         }
+      } else if (error.request) {
+        console.error('No response received:', error.request);
       }
-    } else if (error.request) {
-      console.error('No response received from server');
+    }
+    
+    // Handle token expiration
+    if (error.response && error.response.status === 401) {
+      // Clear token and redirect to login if unauthorized
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Don't redirect if already on login page to prevent redirect loops
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     
     return Promise.reject(error);

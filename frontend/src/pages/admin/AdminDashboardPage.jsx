@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getDashboardStats, getSalesStats, getAllOrders, getAllProducts, getUsers } from "../../api/admin";
+import { getDashboardStats, getSalesStats, getAllOrders, getAllProducts, getUsers, getVisitorAnalytics } from "../../api/admin";
 import axios from "axios";
 import { API_URL } from "../../api/config";
 
@@ -53,8 +53,19 @@ const AdminDashboardPage = () => {
     sales: [],
     orders: []
   });
+  const [visitorData, setVisitorData] = useState({
+    totalVisits: 0,
+    totalUniqueVisits: 0,
+    totalPageViews: 0,
+    dailyData: [],
+    devices: { desktop: 0, mobile: 0, tablet: 0, other: 0 },
+    browsers: { chrome: 0, firefox: 0, safari: 0, edge: 0, ie: 0, other: 0 },
+    topPages: [],
+    topReferrers: []
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [salesPeriod, setSalesPeriod] = useState('week');
+  const [visitorPeriod, setVisitorPeriod] = useState('week');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState(60000); // 1 minute in milliseconds
@@ -70,6 +81,42 @@ const AdminDashboardPage = () => {
         
         // Fetch sales stats for the chart
         const sales = await getSalesStats(salesPeriod);
+        
+        // Fetch visitor analytics with better error handling
+        try {
+          const visitors = await getVisitorAnalytics(visitorPeriod);
+          
+          // Normalize the visitor data to ensure it has the expected structure
+          const normalizedVisitorData = {
+            totalVisits: visitors.totalVisits || 0,
+            totalUniqueVisits: visitors.totalUniqueVisits || 0,
+            totalPageViews: visitors.totalPageViews || 0,
+            dailyData: Array.isArray(visitors.dailyData) ? visitors.dailyData : [],
+            devices: {
+              desktop: visitors.devices?.desktop || 0,
+              mobile: visitors.devices?.mobile || 0,
+              tablet: visitors.devices?.tablet || 0,
+              other: visitors.devices?.other || 0
+            },
+            browsers: {
+              chrome: visitors.browsers?.chrome || 0,
+              firefox: visitors.browsers?.firefox || 0,
+              safari: visitors.browsers?.safari || 0,
+              edge: visitors.browsers?.edge || 0,
+              ie: visitors.browsers?.ie || 0,
+              other: visitors.browsers?.other || 0
+            },
+            topPages: Array.isArray(visitors.topPages) ? visitors.topPages : [],
+            topReferrers: Array.isArray(visitors.topReferrers) ? visitors.topReferrers : []
+          };
+          
+          // Set the normalized visitor data
+          setVisitorData(normalizedVisitorData);
+          console.log('Visitor data loaded successfully:', normalizedVisitorData);
+        } catch (visitorError) {
+          console.error('Error fetching visitor analytics:', visitorError);
+          // Keep the current visitor data if there was an error
+        }
         
         // Fetch additional metrics (subscribers, reviews)
         const token = localStorage.getItem("token");
@@ -242,6 +289,49 @@ const AdminDashboardPage = () => {
       }
     };
   }, [salesPeriod, autoRefresh, refreshInterval]);
+
+  useEffect(() => {
+    // Fetch visitor analytics data when period changes
+    const fetchVisitorData = async () => {
+      try {
+        console.log('Fetching visitor analytics data for period:', visitorPeriod);
+        const visitors = await getVisitorAnalytics(visitorPeriod);
+        
+        // Create a normalized structure with default values to handle potentially missing data
+        const normalizedVisitorData = {
+          totalVisits: visitors.totalVisits || 0,
+          totalUniqueVisits: visitors.totalUniqueVisits || 0,
+          totalPageViews: visitors.totalPageViews || 0,
+          dailyData: Array.isArray(visitors.dailyData) ? visitors.dailyData : [],
+          devices: {
+            desktop: visitors.devices?.desktop || 0,
+            mobile: visitors.devices?.mobile || 0,
+            tablet: visitors.devices?.tablet || 0,
+            other: visitors.devices?.other || 0
+          },
+          browsers: {
+            chrome: visitors.browsers?.chrome || 0,
+            firefox: visitors.browsers?.firefox || 0,
+            safari: visitors.browsers?.safari || 0,
+            edge: visitors.browsers?.edge || 0,
+            ie: visitors.browsers?.ie || 0,
+            other: visitors.browsers?.other || 0
+          },
+          topPages: Array.isArray(visitors.topPages) ? visitors.topPages : [],
+          topReferrers: Array.isArray(visitors.topReferrers) ? visitors.topReferrers : []
+        };
+        
+        // Set the normalized visitor data
+        setVisitorData(normalizedVisitorData);
+        console.log('Visitor data loaded successfully:', normalizedVisitorData);
+      } catch (error) {
+        console.error('Error fetching visitor analytics:', error);
+        // Keep the current visitor data structure to avoid crashes
+      }
+    };
+
+    fetchVisitorData();
+  }, [visitorPeriod]);
 
   // Helper function to generate sales data based on orders for a specific period
   const generateSalesDataForPeriod = (orders, period) => {
@@ -436,6 +526,118 @@ const AdminDashboardPage = () => {
     ]
   };
 
+  // Chart configuration for visitors
+  const visitorChartData = {
+    labels: visitorData.dailyData.map(data => data.date),
+    datasets: [
+      {
+        label: 'Total Visits',
+        data: visitorData.dailyData.map(data => data.visits),
+        borderColor: 'rgba(14, 165, 233, 1)',
+        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+        tension: 0.4,
+        fill: true,
+        yAxisID: 'y',
+        pointBackgroundColor: 'rgba(14, 165, 233, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      },
+      {
+        label: 'Unique Visitors',
+        data: visitorData.dailyData.map(data => data.uniqueVisits),
+        borderColor: 'rgba(249, 115, 22, 1)',
+        backgroundColor: 'rgba(249, 115, 22, 0.1)',
+        borderDash: [5, 5],
+        tension: 0.4,
+        fill: false,
+        yAxisID: 'y',
+        pointBackgroundColor: 'rgba(249, 115, 22, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5
+      },
+      {
+        label: 'Page Views',
+        data: visitorData.dailyData.map(data => data.pageViews),
+        borderColor: 'rgba(139, 92, 246, 1)',
+        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+        tension: 0.4,
+        fill: false,
+        yAxisID: 'y1',
+        pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 2,
+        pointHoverRadius: 4
+      }
+    ]
+  };
+
+  // Device distribution chart data
+  const deviceChartData = {
+    labels: ['Desktop', 'Mobile', 'Tablet', 'Other'],
+    datasets: [
+      {
+        data: [
+          visitorData.devices.desktop,
+          visitorData.devices.mobile,
+          visitorData.devices.tablet,
+          visitorData.devices.other
+        ],
+        backgroundColor: [
+          'rgba(14, 165, 233, 0.8)',
+          'rgba(249, 115, 22, 0.8)',
+          'rgba(139, 92, 246, 0.8)',
+          'rgba(156, 163, 175, 0.8)'
+        ],
+        borderColor: [
+          'rgba(14, 165, 233, 1)',
+          'rgba(249, 115, 22, 1)',
+          'rgba(139, 92, 246, 1)',
+          'rgba(156, 163, 175, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  };
+
+  // Browser distribution chart data
+  const browserChartData = {
+    labels: ['Chrome', 'Firefox', 'Safari', 'Edge', 'IE', 'Other'],
+    datasets: [
+      {
+        data: [
+          visitorData.browsers.chrome,
+          visitorData.browsers.firefox,
+          visitorData.browsers.safari,
+          visitorData.browsers.edge,
+          visitorData.browsers.ie,
+          visitorData.browsers.other
+        ],
+        backgroundColor: [
+          'rgba(52, 211, 153, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(59, 130, 246, 0.8)',
+          'rgba(16, 185, 129, 0.8)',
+          'rgba(107, 114, 128, 0.8)',
+          'rgba(156, 163, 175, 0.8)'
+        ],
+        borderColor: [
+          'rgba(52, 211, 153, 1)',
+          'rgba(239, 68, 68, 1)',
+          'rgba(59, 130, 246, 1)',
+          'rgba(16, 185, 129, 1)',
+          'rgba(107, 114, 128, 1)',
+          'rgba(156, 163, 175, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  };
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -471,6 +673,70 @@ const AdminDashboardPage = () => {
       },
       y: {
         grid: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.7)'
+        }
+      }
+    }
+  };
+
+  // Visitor chart options
+  const visitorChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: 'rgba(255, 255, 255, 0.7)',
+          font: {
+            family: 'system-ui'
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        titleColor: 'rgba(255, 255, 255, 1)',
+        bodyColor: 'rgba(255, 255, 255, 0.8)',
+        borderColor: 'rgba(14, 165, 233, 0.3)',
+        borderWidth: 1,
+        padding: 12,
+        boxPadding: 6,
+        usePointStyle: true
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.7)'
+        }
+      },
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        grid: {
+          color: 'rgba(255, 255, 255, 0.1)'
+        },
+        ticks: {
+          color: 'rgba(255, 255, 255, 0.7)'
+        }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        grid: {
+          drawOnChartArea: false,
           color: 'rgba(255, 255, 255, 0.1)'
         },
         ticks: {
@@ -557,92 +823,92 @@ const AdminDashboardPage = () => {
       </div>
       
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-        <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 mb-8">
+        <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-4 lg:p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-amber-900/30 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 sm:p-3 bg-amber-900/30 rounded-full mr-3 sm:mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 lg:h-8 lg:w-8 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Orders</p>
-              <h3 className="text-2xl font-bold text-white">{stats.totalOrders}</h3>
+              <p className="text-xs sm:text-sm text-gray-400">Total Orders</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-white">{stats.totalOrders}</h3>
               <p className="text-xs text-amber-400">+{stats.ordersToday} today</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-6">
+        <div className="bg-green-900/20 border border-green-700/30 rounded-lg p-4 lg:p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-green-900/30 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 sm:p-3 bg-green-900/30 rounded-full mr-3 sm:mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 lg:h-8 lg:w-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Revenue</p>
-              <h3 className="text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</h3>
+              <p className="text-xs sm:text-sm text-gray-400">Total Revenue</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-white">{formatCurrency(stats.totalRevenue)}</h3>
             </div>
           </div>
         </div>
         
-        <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-6">
+        <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-4 lg:p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-purple-900/30 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 sm:p-3 bg-purple-900/30 rounded-full mr-3 sm:mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 lg:h-8 lg:w-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Products</p>
-              <h3 className="text-2xl font-bold text-white">{stats.totalProducts}</h3>
+              <p className="text-xs sm:text-sm text-gray-400">Total Products</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-white">{stats.totalProducts}</h3>
             </div>
           </div>
         </div>
         
-        <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-6">
+        <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg p-4 lg:p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-blue-900/30 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 sm:p-3 bg-blue-900/30 rounded-full mr-3 sm:mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 lg:h-8 lg:w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Users</p>
-              <h3 className="text-2xl font-bold text-white">{stats.totalUsers}</h3>
+              <p className="text-xs sm:text-sm text-gray-400">Total Users</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-white">{stats.totalUsers}</h3>
               <p className="text-xs text-blue-400">+{stats.newUsersToday} today</p>
             </div>
           </div>
         </div>
         
         {/* Subscribers Stats Box */}
-        <div className="bg-cyan-900/20 border border-cyan-700/30 rounded-lg p-6">
+        <div className="bg-cyan-900/20 border border-cyan-700/30 rounded-lg p-4 lg:p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-cyan-900/30 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 sm:p-3 bg-cyan-900/30 rounded-full mr-3 sm:mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 lg:h-8 lg:w-8 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Subscribers</p>
-              <h3 className="text-2xl font-bold text-white">{stats.totalSubscribers}</h3>
+              <p className="text-xs sm:text-sm text-gray-400">Total Subscribers</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-white">{stats.totalSubscribers}</h3>
               <Link to="/admin/subscribers" className="text-xs text-cyan-400 hover:underline">Manage</Link>
             </div>
           </div>
         </div>
         
         {/* Reviews Stats Box */}
-        <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-6">
+        <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-lg p-4 lg:p-6">
           <div className="flex items-center">
-            <div className="p-3 bg-yellow-900/30 rounded-full mr-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 sm:p-3 bg-yellow-900/30 rounded-full mr-3 sm:mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 lg:h-8 lg:w-8 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm text-gray-400">Total Reviews</p>
-              <h3 className="text-2xl font-bold text-white">{stats.totalReviews}</h3>
+              <p className="text-xs sm:text-sm text-gray-400">Total Reviews</p>
+              <h3 className="text-xl lg:text-2xl font-bold text-white">{stats.totalReviews}</h3>
               <Link to="/admin/reviews" className="text-xs text-yellow-400 hover:underline">Manage</Link>
             </div>
           </div>
@@ -650,50 +916,50 @@ const AdminDashboardPage = () => {
       </div>
       
       {/* Revenue and Order Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
         {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-white">Revenue Overview</h2>
-            <div className="flex space-x-2">
+        <div className="lg:col-span-2 bg-neutral-900 border border-neutral-800 rounded-lg p-3 sm:p-4">
+          <div className="flex flex-wrap justify-between items-center mb-3 sm:mb-4">
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-0">Revenue Overview</h2>
+            <div className="flex space-x-1 sm:space-x-2">
               <button 
-                className={`px-3 py-1 text-xs rounded-md ${salesPeriod === 'week' ? 'bg-amber-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
+                className={`px-2 py-1 text-xs rounded-md ${salesPeriod === 'week' ? 'bg-amber-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
                 onClick={() => setSalesPeriod('week')}
               >
                 Week
               </button>
               <button 
-                className={`px-3 py-1 text-xs rounded-md ${salesPeriod === 'month' ? 'bg-amber-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
+                className={`px-2 py-1 text-xs rounded-md ${salesPeriod === 'month' ? 'bg-amber-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
                 onClick={() => setSalesPeriod('month')}
               >
                 Month
               </button>
               <button 
-                className={`px-3 py-1 text-xs rounded-md ${salesPeriod === 'year' ? 'bg-amber-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
+                className={`px-2 py-1 text-xs rounded-md ${salesPeriod === 'year' ? 'bg-amber-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
                 onClick={() => setSalesPeriod('year')}
               >
                 Year
               </button>
             </div>
           </div>
-          <div className="h-80">
+          <div className="h-60 sm:h-72 lg:h-80">
             <Line data={salesChartData} options={chartOptions} />
           </div>
         </div>
         
         {/* Order Status Chart */}
-        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-          <h2 className="text-xl font-bold text-white mb-4">Order Status</h2>
-          <div className="h-72">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-3 sm:p-4">
+          <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Order Status</h2>
+          <div className="h-56 sm:h-64">
             <Doughnut data={orderStatusData} options={doughnutOptions} />
           </div>
         </div>
       </div>
       
       {/* Orders Chart */}
-      <div className="mb-8 bg-neutral-900 border border-neutral-800 rounded-lg p-4">
-        <h2 className="text-xl font-bold text-white mb-4">Order Trends</h2>
-        <div className="h-64">
+      <div className="mb-6 sm:mb-8 bg-neutral-900 border border-neutral-800 rounded-lg p-3 sm:p-4">
+        <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Order Trends</h2>
+        <div className="h-48 sm:h-56 lg:h-64">
           <Bar data={ordersChartData} options={chartOptions} />
         </div>
       </div>
@@ -871,6 +1137,166 @@ const AdminDashboardPage = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Visitor Analytics */}
+      <div className="bg-neutral-900 border border-neutral-800 rounded-lg mb-8 mt-8">
+        <div className="border-b border-neutral-800 p-4 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-white">Visitor Analytics</h2>
+          <div className="flex space-x-2">
+            <button 
+              className={`px-3 py-1 text-xs rounded-md ${visitorPeriod === 'day' ? 'bg-sky-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
+              onClick={() => setVisitorPeriod('day')}
+            >
+              Today
+            </button>
+            <button 
+              className={`px-3 py-1 text-xs rounded-md ${visitorPeriod === 'week' ? 'bg-sky-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
+              onClick={() => setVisitorPeriod('week')}
+            >
+              Week
+            </button>
+            <button 
+              className={`px-3 py-1 text-xs rounded-md ${visitorPeriod === 'month' ? 'bg-sky-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
+              onClick={() => setVisitorPeriod('month')}
+            >
+              Month
+            </button>
+            <button 
+              className={`px-3 py-1 text-xs rounded-md ${visitorPeriod === 'year' ? 'bg-sky-700 text-white' : 'bg-neutral-800 text-gray-400 hover:bg-neutral-700'}`}
+              onClick={() => setVisitorPeriod('year')}
+            >
+              Year
+            </button>
+          </div>
+        </div>
+        
+        {/* Visitor Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 p-3 sm:p-4">
+          <div className="bg-sky-900/20 border border-sky-700/30 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center">
+              <div className="p-2 sm:p-3 bg-sky-900/30 rounded-full mr-3 sm:mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-gray-400">Total Visits</p>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{visitorData.totalVisits.toLocaleString()}</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-orange-900/20 border border-orange-700/30 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center">
+              <div className="p-2 sm:p-3 bg-orange-900/30 rounded-full mr-3 sm:mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-gray-400">Unique Visitors</p>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{visitorData.totalUniqueVisits.toLocaleString()}</h3>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-purple-900/20 border border-purple-700/30 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center">
+              <div className="p-2 sm:p-3 bg-purple-900/30 rounded-full mr-3 sm:mr-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-gray-400">Page Views</p>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{visitorData.totalPageViews.toLocaleString()}</h3>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Visitor Chart */}
+        <div className="p-3 sm:p-4">
+          <div className="h-60 sm:h-72 lg:h-80">
+            <Line data={visitorChartData} options={visitorChartOptions} />
+          </div>
+        </div>
+        
+        {/* Device and Browser Distribution */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-white mb-4">Device Distribution</h3>
+            <div className="h-64">
+              <Doughnut data={deviceChartData} options={doughnutOptions} />
+            </div>
+          </div>
+          
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-4">
+            <h3 className="text-lg font-bold text-white mb-4">Browser Distribution</h3>
+            <div className="h-64">
+              <Doughnut data={browserChartData} options={doughnutOptions} />
+            </div>
+          </div>
+        </div>
+        
+        {/* Top Pages and Referrers */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 p-3 sm:p-4">
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Top Pages</h3>
+            {visitorData.topPages && visitorData.topPages.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-neutral-800">
+                  <thead>
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Page</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Views</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800">
+                    {visitorData.topPages.map((pageData, index) => (
+                      <tr key={index} className="hover:bg-neutral-800/30">
+                        <td className="px-3 py-2 text-xs sm:text-sm text-gray-300 max-w-[150px] sm:max-w-xs truncate">{pageData.page}</td>
+                        <td className="px-3 py-2 text-xs sm:text-sm text-gray-300 text-right">{pageData.count.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-4 text-sm">No page data available</p>
+            )}
+          </div>
+          
+          <div className="bg-neutral-900/50 border border-neutral-800 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Top Referrers</h3>
+            {visitorData.topReferrers && visitorData.topReferrers.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-neutral-800">
+                  <thead>
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Source</th>
+                      <th className="px-3 py-2 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">Visits</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800">
+                    {visitorData.topReferrers.map((referrerData, index) => (
+                      <tr key={index} className="hover:bg-neutral-800/30">
+                        <td className="px-3 py-2 text-xs sm:text-sm text-gray-300 max-w-[150px] sm:max-w-xs truncate">
+                          {referrerData.referrer === 'direct' ? 'Direct / None' : referrerData.referrer}
+                        </td>
+                        <td className="px-3 py-2 text-xs sm:text-sm text-gray-300 text-right">{referrerData.count.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-4 text-sm">No referrer data available</p>
+            )}
           </div>
         </div>
       </div>

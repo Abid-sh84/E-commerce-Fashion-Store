@@ -31,9 +31,8 @@ const avatars = [
 
 const DEFAULT_AVATAR = "https://res.cloudinary.com/dkmakj50l/image/upload/v1744447073/superman_avatar_geflb0.png"
 
-// Fix for process.env not defined error
-// Replace process.env with direct API URL or use import.meta.env for Vite projects
-const API_ENDPOINT = `${API_URL}/api`
+// Use proper environment variables instead of hardcoded URL
+const API_ENDPOINT = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'http://localhost:5000/api'
 
 // Address API functions - Updated with correct endpoints to match backend routes
 const getAddresses = async () => {

@@ -1,14 +1,13 @@
 import { API_URL, API_BASE_URL } from './config';
 import axios from 'axios';
 
-console.log('API URL being used:', API_URL);
-
 // Create an axios instance for auth requests
 const authClient = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true // Important for cookies/auth
 });
 
 // Add auth token to requests if it exists
@@ -32,13 +31,17 @@ const setAuthToken = token => {
  */
 export const login = async (email, password) => {
   try {
-    console.log('Attempting login with:', { email }); // Debug log
+    if (import.meta.env.DEV) {
+      console.log('Attempting login with:', { email }); // Debug log
+    }
     const response = await authClient.post('/users/login', { email, password });
     
     if (response.data && response.data.token) {
       setAuthToken(response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data));
-      console.log('Login successful, token set');
+      if (import.meta.env.DEV) {
+        console.log('Login successful, token set');
+      }
     }
     
     return response.data;

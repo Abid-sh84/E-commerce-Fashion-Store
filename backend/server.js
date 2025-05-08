@@ -14,6 +14,7 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import subscriberRoutes from './routes/subscriberRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
+import visitorRoutes from './routes/visitorRoutes.js';
 
 // Load env vars
 dotenv.config();
@@ -77,6 +78,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/coupons', couponRoutes);
+app.use('/api/visitors', visitorRoutes);
 
 // Base route
 app.get('/', (req, res) => {

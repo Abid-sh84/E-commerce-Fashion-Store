@@ -34,6 +34,8 @@ import AdminCancellationPage from "./pages/admin/AdminCancellationPage"
 import AdminSubscribersPage from "./pages/admin/AdminSubscribersPage"
 import AdminCouponsPage from "./pages/admin/AdminCouponsPage"
 import AdminReviewsPage from "./pages/admin/AdminReviewsPage"
+import VisitorTracker from "./components/VisitorTracker"
+import AdminProfilePage from "./pages/admin/AdminProfilePage"
 
 import { CartProvider } from "./contexts/CartContext"
 import { WishlistProvider } from "./contexts/WishlistContext"
@@ -96,6 +98,8 @@ function App() {
       <CartProvider>
         <WishlistProvider>
           <RecentlyViewedProvider>
+            {/* Visitor Tracking Component */}
+            <VisitorTracker />
             <Routes>
               {/* Admin Login Route */}
               <Route path="/admin-login" element={<AdminLoginPage />} />
@@ -122,6 +126,7 @@ function App() {
                 <Route path="coupons" element={<AdminCouponsPage />} />
                 <Route path="reviews" element={<AdminReviewsPage />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
+                <Route path="profile" element={<AdminProfilePage />} />
               </Route>
 
               {/* All public routes including home route */}

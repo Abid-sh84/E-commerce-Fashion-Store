@@ -416,3 +416,34 @@ export const deleteOrder = async (orderId) => {
     throw new Error(error.response?.data?.message || 'Failed to delete order');
   }
 };
+
+/**
+ * Get visitor analytics data
+ * @param {string} period - Time period (e.g., 'day', 'week', 'month', 'year')
+ * @returns {Promise} - Visitor analytics data
+ */
+export const getVisitorAnalytics = async (period = 'week') => {
+  try {
+    const response = await apiClient.get(`/visitors?period=${period}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching visitor analytics:', error);
+    throw new Error(error.response?.data?.message || 'Failed to fetch visitor analytics');
+  }
+};
+
+/**
+ * Record a site visit
+ * @param {Object} visitData - Visit data including page, device, browser, referrer
+ * @returns {Promise} - Success status
+ */
+export const recordVisit = async (visitData) => {
+  try {
+    const response = await apiClient.post('/visitors', visitData);
+    return response.data;
+  } catch (error) {
+    console.error('Error recording visit:', error);
+    // Don't throw error to prevent affecting user experience
+    return { success: false };
+  }
+};
