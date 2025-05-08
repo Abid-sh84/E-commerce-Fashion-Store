@@ -119,14 +119,14 @@ const GoogleAuthCallback = () => {
   
   // Show loading or error state
   return (
-    <div className="min-h-screen bg-black text-white relative py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-dvh bg-black text-white relative py-12 px-4 sm:px-6 lg:px-8">
       {/* Stars container */}
       <div id="callback-stars-container" className="fixed inset-0 pointer-events-none overflow-hidden"></div>
       
       {/* Cosmic rays */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 left-1/3 w-px h-screen bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(251, 191, 36, 0.5)'}}></div>
-        <div className="absolute top-0 left-2/3 w-px h-screen bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(251, 191, 36, 0.5)'}}></div>
+        <div className="absolute top-0 left-1/3 w-px h-dvh bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(251, 191, 36, 0.5)'}}></div>
+        <div className="absolute top-0 left-2/3 w-px h-dvh bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(251, 191, 36, 0.5)'}}></div>
       </div>
       
       <div className="max-w-md w-full space-y-8 relative z-10 mx-auto">

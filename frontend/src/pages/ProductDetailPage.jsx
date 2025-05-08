@@ -602,7 +602,7 @@ const ProductDetailPage = () => {
   // Enhanced loading state with simplified styling
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-950">
+      <div className="min-h-dvh bg-neutral-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
           <div className="animate-pulse">
             {/* ...existing loading state code... */}
@@ -615,7 +615,7 @@ const ProductDetailPage = () => {
   // Error state with simplified theme
   if (error) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+      <div className="min-h-dvh bg-neutral-950 flex items-center justify-center">
         <div className="bg-neutral-900 p-8 border border-neutral-800 text-center max-w-md">
           {/* ...existing error state code... */}
         </div>
@@ -625,7 +625,7 @@ const ProductDetailPage = () => {
 
   // Main component rendering with simplified theme
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-dvh bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         {/* Success message toast */}
         {actionSuccess && (

@@ -61,7 +61,7 @@ const AdminRoute = ({ children }) => {
 // Public layout with Navbar and Footer
 const PublicLayout = () => {
   return (
-    <div className="flex flex-col min-h-screen bg-indigo-950 bg-[url('/images/starry-bg.png')] bg-fixed bg-cover">
+    <div className="flex flex-col min-h-dvh bg-indigo-950 bg-[url('/images/starry-bg.png')] bg-fixed bg-cover">
       <Navbar />
       <main className="flex-grow">
         <Routes>

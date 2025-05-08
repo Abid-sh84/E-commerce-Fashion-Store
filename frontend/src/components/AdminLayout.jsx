@@ -54,7 +54,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex h-screen bg-neutral-950">
+    <div className="flex h-dvh bg-neutral-950">
       {/* Sidebar */}
       <div className={`bg-neutral-900 border-r border-neutral-800 transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-20'} overflow-y-auto`}>
         {/* Logo and Toggle */}

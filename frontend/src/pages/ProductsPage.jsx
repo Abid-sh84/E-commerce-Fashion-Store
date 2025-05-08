@@ -412,7 +412,7 @@ const ProductsPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-dvh bg-neutral-950">
       <div className="relative z-10 bg-gradient-to-b from-neutral-900 via-neutral-950 to-neutral-950">
         {/* Hero section with background slideshow */}
         <div className="relative overflow-hidden">

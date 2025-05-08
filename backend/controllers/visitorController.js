@@ -29,8 +29,10 @@ const recordVisit = asyncHandler(async (req, res) => {
     });
   }
   
-  // Update visitor count
-  visitorRecord.count += 1;
+  // Update visitor count - only increment for new sessions
+  if (uniqueVisitor) {
+    visitorRecord.count += 1;
+  }
   
   // Track unique visitors by their fingerprint ID
   if (visitorId) {

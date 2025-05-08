@@ -103,14 +103,14 @@ const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white relative py-12 px-4">
+    <div className="min-h-dvh bg-black text-white relative py-12 px-4">
       {/* Stars container */}
       <div id="admin-login-stars-container" className="fixed inset-0 pointer-events-none overflow-hidden"></div>
       
       {/* Cosmic rays */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 left-1/3 w-px h-screen bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(245, 158, 11, 0.5)'}}></div>
-        <div className="absolute top-0 left-2/3 w-px h-screen bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(245, 158, 11, 0.5)'}}></div>
+        <div className="absolute top-0 left-1/3 w-px h-dvh bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(245, 158, 11, 0.5)'}}></div>
+        <div className="absolute top-0 left-2/3 w-px h-dvh bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(245, 158, 11, 0.5)'}}></div>
       </div>
 
       <div className="max-w-md mx-auto relative z-10">

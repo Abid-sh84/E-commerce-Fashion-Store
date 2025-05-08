@@ -56,7 +56,7 @@ const WishlistPage = () => {
 
   if (wishlistItems.length === 0) {
     return (
-      <div className="min-h-screen bg-neutral-950 text-white py-12">
+      <div className="min-h-dvh bg-neutral-950 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <h1 className="text-4xl font-bold text-center text-white mb-4 uppercase tracking-wider">
             Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600">Wishlist</span>
@@ -93,7 +93,7 @@ const WishlistPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white py-12">
+    <div className="min-h-dvh bg-neutral-950 text-white py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div className="flex flex-col md:flex-row justify-between items-center mb-12">
           <div className="mb-6 md:mb-0">

@@ -130,7 +130,7 @@ const HomePage = () => {
   
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="min-h-dvh bg-black text-white relative">
       {/* Hero Section - Sagacity Style */}
       <section className="relative min-h-[90vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-black/30 z-10"></div>

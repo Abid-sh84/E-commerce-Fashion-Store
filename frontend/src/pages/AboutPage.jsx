@@ -32,7 +32,7 @@ const AboutPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white">
+    <div className="min-h-dvh bg-neutral-950 text-white">
       {/* Enhanced Hero Section with parallax */}
       <section className="relative min-h-[80vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-black/60 z-10"></div>

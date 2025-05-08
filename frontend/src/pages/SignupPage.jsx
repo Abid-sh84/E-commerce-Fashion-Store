@@ -112,14 +112,14 @@ const SignupPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white relative py-12 px-4">
+    <div className="min-h-dvh bg-black text-white relative py-12 px-4">
       {/* Stars container */}
       <div id="signup-stars-container" className="fixed inset-0 pointer-events-none overflow-hidden"></div>
       
       {/* Cosmic rays */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 left-1/3 w-px h-screen bg-blue-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(96, 165, 250, 0.5)'}}></div>
-        <div className="absolute top-0 left-2/3 w-px h-screen bg-purple-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(192, 132, 252, 0.5)'}}></div>
+        <div className="absolute top-0 left-1/3 w-px h-dvh bg-blue-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(96, 165, 250, 0.5)'}}></div>
+        <div className="absolute top-0 left-2/3 w-px h-dvh bg-purple-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(192, 132, 252, 0.5)'}}></div>
       </div>
 
       <div className="max-w-md mx-auto relative z-10">

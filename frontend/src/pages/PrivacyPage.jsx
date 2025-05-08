@@ -31,7 +31,7 @@ const PrivacyPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-white">
+    <div className="min-h-dvh bg-neutral-950 text-white">
       {/* Hero Section */}
       <section className="relative min-h-[40vh] flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-black/40 z-10"></div>
