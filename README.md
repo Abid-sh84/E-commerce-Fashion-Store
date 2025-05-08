@@ -57,7 +57,7 @@ npm install
 
 3. Install backend dependencies
 ```bash
-cd ../backend
+cd backend
 npm install
 ```
 
