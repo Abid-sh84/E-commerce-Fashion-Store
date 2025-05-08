@@ -159,7 +159,7 @@ const CartPage = () => {
               
               {cartItems.map((item) => (
                 <div key={`${item.id}-${item.selectedSize}`} className="p-6 border-b border-neutral-800 group">
-                  <div className="flex flex-col sm:flex-row items-center">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start">
                     <div className="flex-shrink-0 w-24 h-24 mb-4 sm:mb-0 relative overflow-hidden rounded-lg">
                       <img
                         src={item.images?.[0] || "/placeholder.svg"}
@@ -168,27 +168,27 @@ const CartPage = () => {
                       />
                     </div>
                     
-                    <div className="sm:ml-6 flex-1">
+                    <div className="sm:ml-6 flex-1 w-full">
                       <div className="flex flex-col sm:flex-row sm:justify-between">
-                        <div>
+                        <div className="text-center sm:text-left mb-3 sm:mb-0">
                           <h3 className="text-lg font-medium text-white group-hover:text-amber-500 transition-colors">
                             {item.name}
                           </h3>
-                          <div className="mt-1 flex items-center">
+                          <div className="mt-1 flex items-center justify-center sm:justify-start flex-wrap gap-2">
                             <span className="text-sm text-gray-400">
                               Size: {item.selectedSize || "M"}
                             </span>
                             {item.selectedColor && (
-                              <span className="ml-4 text-sm text-gray-400">
+                              <span className="text-sm text-gray-400">
                                 Color: {item.selectedColor}
                               </span>
                             )}
                           </div>
                         </div>
                         
-                        <div className="mt-4 sm:mt-0">
+                        <div className="sm:mt-0 mb-4 sm:mb-0 text-center sm:text-right">
                           {item.discount > 0 ? (
-                            <div className="flex flex-col items-end">
+                            <div className="flex flex-col items-center sm:items-end">
                               <span className="font-bold text-lg text-amber-500">
                                 ${((item.price * (1 - item.discount / 100)) * item.quantity).toFixed(2)}
                               </span>
@@ -204,7 +204,7 @@ const CartPage = () => {
                         </div>
                       </div>
                       
-                      <div className="mt-4 flex items-center justify-between">
+                      <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
                         <div className="flex items-center">
                           <button
                             onClick={() => handleQuantityChange(item.id, item.selectedSize, item.quantity - 1)}
