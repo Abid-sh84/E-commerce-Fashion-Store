@@ -671,26 +671,28 @@ const ProductDetailPage = () => {
           </div>
         )}
 
-        {/* Breadcrumbs */}
-        <nav className="mb-8">
-          <ol className="flex items-center space-x-2 text-sm text-gray-400">
-            <li>
+        {/* Breadcrumbs - improved for mobile with truncation */}
+        <nav className="mb-8 overflow-x-auto scrollbar-hide">
+          <ol className="flex flex-nowrap items-center space-x-2 text-sm text-gray-400 whitespace-nowrap">
+            <li className="flex-shrink-0">
               <Link to="/" className="hover:text-amber-500 transition-colors uppercase tracking-wider">
                 Home
               </Link>
             </li>
-            <li>
+            <li className="flex-shrink-0">
               <span className="mx-2">/</span>
             </li>
-            <li>
+            <li className="flex-shrink-0">
               <Link to="/products" className="hover:text-amber-500 transition-colors uppercase tracking-wider">
                 Products
               </Link>
             </li>
-            <li>
+            <li className="flex-shrink-0">
               <span className="mx-2">/</span>
             </li>
-            <li className="text-amber-500 font-medium uppercase tracking-wider">{product.name}</li>
+            <li className="text-amber-500 font-medium uppercase tracking-wider truncate max-w-[150px] sm:max-w-none">
+              {product.name}
+            </li>
           </ol>
         </nav>
 
@@ -708,21 +710,25 @@ const ProductDetailPage = () => {
                 onMouseMove={handleMouseMove}
               >
                 {/* Badge overlays */}
-                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+                <div className="absolute top-2 sm:top-4 left-2 sm:left-4 z-10 flex flex-col gap-2">
                   {product.isNew && (
-                    <div className="bg-black text-white text-xs font-bold px-3 py-1 uppercase">
+                    <div className="bg-black text-white text-xs font-bold px-2 sm:px-3 py-1 uppercase">
                       New
                     </div>
                   )}
                   {product.discount > 0 && (
-                    <div className="bg-amber-700 text-white text-xs font-bold px-3 py-1 uppercase">
+                    <div className="bg-amber-700 text-white text-xs font-bold px-2 sm:px-3 py-1 uppercase">
                       Sale
                     </div>
                   )}
                 </div>
                 
-                {/* Main image */}
-                <div className="relative overflow-hidden" style={{ height: '480px' }}>
+                {/* Main image - Responsive height for various devices */}
+                <div className="relative overflow-hidden" style={{ 
+                  height: 'min(280px, 60vw)', 
+                  maxHeight: '100%', 
+                  minHeight: 'min(280px, 50vw)' 
+                }}>
                   <img
                     src={product.images[selectedImage] || "/placeholder.svg"}
                     alt={product.name}
@@ -757,8 +763,8 @@ const ProductDetailPage = () => {
                 <div 
                   className="hidden md:block bg-neutral-900 border-2 border-amber-600 absolute top-0 left-full ml-4 z-30 shadow-xl"
                   style={{
-                    width: '400px',
-                    height: '400px',
+                    width: '280px',
+                    height: '280px',
                     backgroundImage: `url(${product.images[selectedImage] || "/placeholder.svg"})`,
                     backgroundPosition: `calc(${cursorPosition.x * zoomLevel}% - ${cursorPosition.x}%) calc(${cursorPosition.y * zoomLevel}% - ${cursorPosition.y}%)`,
                     backgroundSize: `${zoomLevel * 100}%`,
@@ -770,13 +776,13 @@ const ProductDetailPage = () => {
               )}
             </div>
 
-            {/* Thumbnail navigation with styling */}
-            <div className="grid grid-cols-5 gap-2">
+            {/* Thumbnail navigation with styling - improved for mobile */}
+            <div className="flex overflow-x-auto scrollbar-hide sm:grid sm:grid-cols-5 gap-1 sm:gap-2 mt-1 sm:mt-2">
               {product.images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
-                  className={`bg-neutral-900 overflow-hidden border transition-all ${
+                  className={`bg-neutral-900 overflow-hidden border transition-all flex-shrink-0 w-14 h-14 sm:w-auto sm:h-auto ${
                     selectedImage === index 
                       ? "border-amber-600" 
                       : "border-neutral-800 hover:border-neutral-700"
@@ -785,7 +791,7 @@ const ProductDetailPage = () => {
                   <img
                     src={image || "/placeholder.svg"}
                     alt={`${product.name} thumbnail ${index + 1}`}
-                    className="w-full h-auto object-cover aspect-square"
+                    className="w-full h-full object-cover aspect-square"
                     loading="lazy" // Lazy load thumbnails
                   />
                 </button>
@@ -793,11 +799,12 @@ const ProductDetailPage = () => {
             </div>
             
             {/* Instruction text for zoom feature */}
-            <div className="text-center text-gray-400 text-sm flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="text-center text-gray-400 text-xs sm:text-sm flex items-center justify-center mt-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              Hover over image to zoom
+              <span className="hidden sm:inline">Hover over image to zoom</span>
+              <span className="sm:hidden">Tap image to zoom</span>
             </div>
           </div>
 
@@ -809,18 +816,18 @@ const ProductDetailPage = () => {
               </span>
             )}
 
-            <h1 className="text-3xl font-bold text-white mb-3 uppercase tracking-wider">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 uppercase tracking-wider break-words hyphens-auto">
               {product.name}
-              <div className="h-1 w-24 bg-amber-600 mt-2"></div>
+              <div className="h-1 w-16 sm:w-24 bg-amber-600 mt-2"></div>
             </h1>
 
-            <div className="flex items-center mb-4">
+            <div className="flex flex-wrap items-center mb-4">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <svg
                     key={i}
                     xmlns="http://www.w3.org/2000/svg"
-                    className={`h-5 w-5 ${i < product.rating ? "text-amber-500" : "text-gray-600"}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${i < product.rating ? "text-amber-500" : "text-gray-600"}`}
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -828,37 +835,41 @@ const ProductDetailPage = () => {
                   </svg>
                 ))}
               </div>
-              <span className="text-gray-400 ml-2 text-sm">
+              <span className="text-gray-400 ml-2 text-xs sm:text-sm whitespace-nowrap">
                 {product.rating} ({product.reviewCount} reviews)
               </span>
             </div>
 
             <div className="mb-6">
               {product.discount > 0 ? (
-                <div className="flex items-center bg-neutral-800 p-3 border border-neutral-700">
-                  <span className="text-3xl font-bold text-amber-500">
-                    ${(product.price * (1 - product.discount / 100)).toFixed(2)}
-                  </span>
-                  <span className="text-xl text-gray-500 line-through ml-3">${product.price.toFixed(2)}</span>
-                  <span className="ml-auto bg-amber-700 text-white text-xs font-bold px-3 py-1">
-                    SAVE {product.discount}%
-                  </span>
+                <div className="flex flex-wrap items-center bg-neutral-800 p-2 sm:p-3 border border-neutral-700">
+                  <div className="flex flex-wrap items-center">
+                    <span className="text-xl sm:text-3xl font-bold text-amber-500">
+                      ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                    </span>
+                    <span className="text-sm sm:text-xl text-gray-500 line-through ml-2 sm:ml-3">${product.price.toFixed(2)}</span>
+                  </div>
+                  <div className="ml-auto mt-2 sm:mt-0">
+                    <span className="bg-amber-700 text-white text-xs font-bold px-2 sm:px-3 py-1 whitespace-nowrap">
+                      SAVE {product.discount}%
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="bg-neutral-800 p-3 border border-neutral-700">
-                  <span className="text-3xl font-bold text-amber-500">${product.price.toFixed(2)}</span>
+                  <span className="text-xl sm:text-3xl font-bold text-amber-500">${product.price.toFixed(2)}</span>
                 </div>
               )}
             </div>
 
             <div className="mb-6">
               <h3 className="text-lg font-medium text-white mb-3 uppercase tracking-wider">Size</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1 sm:gap-2">
                 {sizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`w-12 h-12 flex items-center justify-center font-bold transition-all duration-300 ${
+                    className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center font-bold transition-all duration-300 ${
                       selectedSize === size
                         ? "bg-amber-700 text-white"
                         : "bg-neutral-800 text-white hover:bg-neutral-700 border border-neutral-700"
@@ -884,21 +895,21 @@ const ProductDetailPage = () => {
                 <button
                   onClick={decreaseQuantity}
                   disabled={quantity <= 1}
-                  className="w-12 h-12 bg-neutral-800 text-white flex items-center justify-center hover:bg-neutral-700 border border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-neutral-800 text-white flex items-center justify-center hover:bg-neutral-700 border border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
                   </svg>
                 </button>
-                <div className="w-16 h-12 bg-white text-neutral-950 flex items-center justify-center font-bold border-y border-neutral-700">
+                <div className="w-12 h-10 sm:w-16 sm:h-12 bg-white text-neutral-950 flex items-center justify-center font-bold border-y border-neutral-700">
                   {quantity}
                 </div>
                 <button
                   onClick={increaseQuantity}
                   disabled={quantity >= 10}
-                  className="w-12 h-12 bg-neutral-800 text-white flex items-center justify-center hover:bg-neutral-700 border border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-10 h-10 sm:w-12 sm:h-12 bg-neutral-800 text-white flex items-center justify-center hover:bg-neutral-700 border border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 </button>
@@ -906,13 +917,13 @@ const ProductDetailPage = () => {
               <p className="text-xs text-gray-400 mt-2">Maximum: 10 per order</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
               <button
                 onClick={handleAddToCart}
-                className="px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold transform hover:translate-y-[-5px] transition-all duration-300 flex-1 flex items-center justify-center uppercase tracking-wider"
+                className="px-4 sm:px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-bold transform hover:translate-y-[-5px] transition-all duration-300 flex-1 flex items-center justify-center uppercase tracking-wider text-sm sm:text-base min-h-[45px] sm:min-h-0"
                 disabled={!selectedSize}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </svg>
                 Add to Cart
@@ -920,7 +931,7 @@ const ProductDetailPage = () => {
 
               <button
                 onClick={handleWishlistToggle}
-                className={`px-6 py-3 font-bold flex items-center justify-center transition-all duration-300 uppercase tracking-wider ${
+                className={`px-3 sm:px-6 py-3 font-bold flex items-center justify-center transition-all duration-300 uppercase tracking-wider text-sm sm:text-base min-h-[45px] sm:min-h-0 ${
                   isWishlisted
                     ? "bg-amber-700 text-white hover:bg-amber-600"
                     : "bg-neutral-800 text-white hover:bg-neutral-700 border border-neutral-700"
@@ -928,7 +939,7 @@ const ProductDetailPage = () => {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`h-5 w-5 mr-2 ${isWishlisted ? "fill-white" : ""}`}
+                  className={`h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2 flex-shrink-0 ${isWishlisted ? "fill-white" : ""}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -940,7 +951,7 @@ const ProductDetailPage = () => {
                     d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                   />
                 </svg>
-                {isWishlisted ? "Wishlisted" : "Add to Wishlist"}
+                <span className="whitespace-nowrap">{isWishlisted ? "Wishlisted" : "Add to Wishlist"}</span>
               </button>
             </div>
 
@@ -961,11 +972,11 @@ const ProductDetailPage = () => {
 
             {/* Tabs with styling */}
             <div className="border-t border-neutral-700 pt-6">
-              <div className="flex mb-4 border-b border-neutral-700">
+              <div className="flex mb-4 border-b border-neutral-700 overflow-x-auto scrollbar-hide">
                 {["description", "details", "reviews"].map((tab) => (
                   <button
                     key={tab}
-                    className={`pb-2 px-4 font-medium transition-all uppercase tracking-wider ${
+                    className={`pb-2 px-2 sm:px-4 font-medium text-sm sm:text-base transition-all uppercase tracking-wider whitespace-nowrap flex-1 sm:flex-none text-center ${
                       activeTab === tab 
                         ? "text-amber-500 border-b-2 border-amber-500" 
                         : "text-gray-400 hover:text-white"
@@ -1072,14 +1083,14 @@ const ProductDetailPage = () => {
                       {reviews && reviews.length > 0 ? (
                         reviews.map((review) => (
                           <div key={review._id} className="bg-neutral-800 p-4 border border-neutral-700">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+                              <div className="flex flex-wrap items-center">
                                 <div className="flex">
                                   {[...Array(5)].map((_, i) => (
                                     <svg
                                       key={i}
                                       xmlns="http://www.w3.org/2000/svg"
-                                      className={`h-4 w-4 ${i < review.rating ? "text-amber-500" : "text-gray-600"}`}
+                                      className={`h-3 w-3 sm:h-4 sm:w-4 ${i < review.rating ? "text-amber-500" : "text-gray-600"}`}
                                       viewBox="0 0 20 20"
                                       fill="currentColor"
                                     >
@@ -1087,7 +1098,7 @@ const ProductDetailPage = () => {
                                     </svg>
                                   ))}
                                 </div>
-                                <h5 className="font-medium text-white ml-2">{review.title}</h5>
+                                <h5 className="font-medium text-white ml-2 break-words">{review.title}</h5>
                               </div>
                               
                               {/* Edit & Delete buttons - shown only to the review author */}

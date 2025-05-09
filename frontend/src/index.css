@@ -308,3 +308,38 @@ button {
   border-color: var(--secondary);
   box-shadow: 0 0 0 2px rgba(247, 37, 133, 0.3);
 }
+
+/* Make product details section more responsive */
+.lg:col-span-1 h1 {
+  font-size: clamp(1.5rem, 5vw, 3rem);
+  word-break: break-word;
+}
+
+/* Responsive tabs for mobile devices */
+.flex.mb-4.border-b.border-neutral-700 {
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.flex.mb-4.border-b.border-neutral-700::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Ensure cart is fully responsive */
+.w-full.bg-amber-700 {
+  white-space: nowrap;
+}
+
+/* Fix product image sizing for small screens */
+@media (max-width: 640px) {
+  .relative.overflow-hidden {
+    height: 250px !important;
+  }
+  
+  /* Make quantity buttons more touch-friendly */
+  .w-12.h-12 {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

@@ -2,6 +2,28 @@
   padding: 2rem 0 4rem;
 }
 
+/* Mobile text optimizations */
+h1.break-words {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (max-width: 640px) {
+  .whitespace-nowrap {
+    white-space: nowrap;
+  }
+  
+  .overflow-x-auto.scrollbar-hide {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  
+  .overflow-x-auto.scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}
+
 .product-detail-loading {
   min-height: 70vh;
   display: flex;
