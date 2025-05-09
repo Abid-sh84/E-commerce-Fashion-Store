@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import axios from "axios"
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import { API_URL } from "../api/config"; // Make sure we use the configured API URL
 
 const ResetPasswordPage = () => {
   const [password, setPassword] = useState("")
@@ -89,8 +90,8 @@ const ResetPasswordPage = () => {
       
       try {
         setTokenVerifying(true);
-        // Use API_URL from config instead of hardcoded URL
-        await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/reset-password/${token}/verify`);
+        // Use the API_URL from config rather than relying on environment variable
+        await axios.get(`${API_URL}/api/users/reset-password/${token}/verify`);
         setTokenValid(true);
       } catch (err) {
         console.error("Token verification error:", err);
@@ -127,8 +128,8 @@ const ResetPasswordPage = () => {
       setIsLoading(true);
       setError("");
       
-      // Use environment variable for API URL
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/reset-password/${token}`, {
+      // Use API_URL from config for consistent endpoint usage
+      await axios.post(`${API_URL}/api/users/reset-password/${token}`, {
         password
       });
       

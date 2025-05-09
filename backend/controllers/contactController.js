@@ -54,22 +54,22 @@ const sendContactEmail = asyncHandler(async (req, res) => {
   try {
     console.log('Sending contact form email from:', email);
     
-    // Format the email content
+    // Format the email content with the site's color theme
     const emailContent = `
-      <div style="background-color: #1a104d; color: #e9e9ff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
-        <h2 style="color: #ffc107; text-align: center; margin-bottom: 20px;">New Contact Form Submission</h2>
+      <div style="background-color: #000000; color: #ffffff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif; border: 1px solid #333333;">
+        <h2 style="color: #f59e0b; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">New Contact Form Submission</h2>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Subject:</strong> ${subject || 'No Subject'}</p>
-        <h3 style="color: #ffc107; margin-top: 20px;">Message:</h3>
-        <p style="background-color: #2c2157; padding: 15px; border-radius: 5px;">${message.replace(/\n/g, '<br>')}</p>
-        <p style="font-size: 12px; margin-top: 30px; color: #aaa;">This message was sent from the contact form on your website.</p>
+        <h3 style="color: #f59e0b; margin-top: 20px;">Message:</h3>
+        <p style="background-color: #1a1a1a; padding: 15px; border-radius: 5px;">${message.replace(/\n/g, '<br>')}</p>
+        <p style="font-size: 12px; margin-top: 30px; color: #666666;">This message was sent from the contact form on your website.</p>
       </div>
     `;
 
     // Send the email
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Contact Form" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"Fashion Store" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER, // Send to the store email address
       replyTo: email, // Set reply-to as the sender's email
       subject: `Contact Form: ${subject || 'New Message'}`,
@@ -82,24 +82,27 @@ const sendContactEmail = asyncHandler(async (req, res) => {
     
     // Send a confirmation/thank you email to the customer
     const confirmationEmail = `
-      <div style="background-color: #1a104d; color: #e9e9ff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
-        <h2 style="color: #ffc107; text-align: center; margin-bottom: 20px;">Thank You for Contacting Us</h2>
+      <div style="background-color: #000000; color: #ffffff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif; border: 1px solid #333333;">
+        <h2 style="color: #f59e0b; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Thank You for Contacting Us</h2>
         <p>Hello ${name},</p>
-        <p>Thank you for reaching out to Starry Comics. We have received your message and will get back to you as soon as possible.</p>
+        <p>Thank you for reaching out to Fashion Store. We have received your message and will get back to you as soon as possible.</p>
         <p>For your records, here's a copy of your message:</p>
-        <div style="background-color: #2c2157; padding: 15px; border-radius: 5px; margin-top: 15px; margin-bottom: 15px;">
+        <div style="background-color: #1a1a1a; padding: 15px; border-radius: 5px; margin-top: 15px; margin-bottom: 15px;">
           <p><strong>Subject:</strong> ${subject || 'No Subject'}</p>
           <p>${message.replace(/\n/g, '<br>')}</p>
         </div>
         <p>If you have any additional information to provide, please feel free to reply to this email.</p>
-        <p>Regards,<br>The Starry Comics Team</p>
+        <p>Regards,<br>The Fashion Store Team</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333333; text-align: center;">
+          <p style="font-size: 12px; color: #666666;">This is an automated message. Please do not reply to this email.</p>
+        </div>
       </div>
     `;
     
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Starry Comics" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"Fashion Store" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Thank You for Contacting Starry Comics',
+      subject: 'Thank You for Contacting Fashion Store',
       html: confirmationEmail,
     });
     

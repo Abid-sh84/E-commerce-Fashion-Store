@@ -153,6 +153,36 @@ export const logout = () => {
   localStorage.removeItem('token');
 };
 
+/**
+ * Request password reset
+ * @param {string} email - User's email address
+ * @returns {Promise} - Promise that resolves with success message
+ */
+export const forgotPassword = async (email) => {
+  try {
+    // Use the direct API URL to avoid CORS issues in deployment
+    // Always use the API_URL from config file 
+    const response = await axios.post(`${API_URL}/api/users/forgot-password`, 
+      { email },
+      { 
+        headers: { 'Content-Type': 'application/json' },
+        // Important for cross-origin requests
+        withCredentials: true 
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    
+    // Still return success to prevent email enumeration
+    // This is a security best practice
+    return {
+      message: 'If that email exists in our system, we\'ve sent a password reset link.'
+    };
+  }
+};
+
 // Initialize token from localStorage when this module is imported
 const token = localStorage.getItem('token');
 if (token) {

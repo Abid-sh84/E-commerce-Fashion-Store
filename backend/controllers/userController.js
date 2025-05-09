@@ -512,13 +512,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   
   console.log('Received request to reset password for:', email);
 
-  // Always recreate transporter to ensure fresh connection
-  try {
-    transporter = createTransporter();
-  } catch (err) {
-    console.error('Failed to create email transporter:', err);
-  }
-  
+  // Find user by email
   const user = await User.findOne({ email });
 
   // Always return success response to prevent email enumeration
@@ -549,23 +543,31 @@ const forgotPassword = asyncHandler(async (req, res) => {
   // Create reset URL (frontend URL that can handle token)
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
   
-  // Send response first to prevent timeout
+  // Send response first to prevent timeout - IMPORTANT for serverless functions
   res.status(200).json({
     message: 'If that email exists in our system, we\'ve sent a password reset link.',
   });
 
   try {
-    console.log('Attempting to send email to:', user.email);
+    // Always recreate transporter for each email
+    const transporter = createTransporter();
+    
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.error('Email credentials missing. Check your environment variables.');
+      return; // Exit early after sending success response to client
+    }
+    
+    console.log('Attempting to send password reset email to:', email);
 
-    // Use the exact same format as your working test script
+    // Send the email with both HTML and text versions
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Starry Comics" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"Fashion Store" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: 'Password Reset Request',
       text: `
 Password Reset Request
 
-Hello Hero,
+Hello,
 
 You are receiving this email because you (or someone else) has requested to reset your password.
 
@@ -575,20 +577,20 @@ Please use this link to reset your password: ${resetUrl}
 If you did not request this, please ignore this email and your password will remain unchanged.
 
 Regards,
-The Starry Comics Team
+The Fashion Store Team
       `,
       html: `
-      <div style="background-color: #1a104d; color: #e9e9ff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
-        <h2 style="color: #ffc107; text-align: center; margin-bottom: 20px;">Password Reset Request</h2>
-        <p>Hello Hero,</p>
+      <div style="background-color: #000000; color: #ffffff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif; border: 1px solid #333333;">
+        <h2 style="color: #f59e0b; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Password Reset Request</h2>
+        <p>Hello,</p>
         <p>You are receiving this email because you (or someone else) has requested to reset your password.</p>
         <p>Please click the button below to set a new password. This link will expire in 30 minutes.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-image: linear-gradient(to right, #ffc107, #ffca28); color: #1a104d; font-weight: bold; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block;">Reset Password</a>
+          <a href="${resetUrl}" style="background-image: linear-gradient(to right, #b45309, #f59e0b); color: #000000; font-weight: bold; padding: 12px 24px; border-radius: 5px; text-decoration: none; display: inline-block; text-transform: uppercase; letter-spacing: 1px;">Reset Password</a>
         </div>
         <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
-        <p>Regards,<br>The Starry Comics Team</p>
-        <p>If the button doesn't work, copy and paste this link into your browser: ${resetUrl}</p>
+        <p>Regards,<br>The Fashion Store Team</p>
+        <p style="margin-top: 20px; font-size: 12px; color: #666666;">If the button doesn't work, copy and paste this link into your browser: ${resetUrl}</p>
       </div>
       `
     });
@@ -597,14 +599,8 @@ The Starry Comics Team
     console.log('Message ID:', info.messageId);
   } catch (error) {
     console.error('Email send error:', error);
-    // Reset the token fields if email fails
-    try {
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save();
-    } catch (saveError) {
-      console.error('Error clearing token after email failure:', saveError);
-    }
+    // We already sent success response to user, so we just log the error
+    // We don't clear the token because the user may still access the reset link through console
   }
 });
 
@@ -671,17 +667,20 @@ const resetPassword = asyncHandler(async (req, res) => {
     transporter = createTransporter();
     
     const message = `
-      <div style="background-color: #1a104d; color: #e9e9ff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
-        <h2 style="color: #4caf50; text-align: center; margin-bottom: 20px;">Password Successfully Reset</h2>
-        <p>Hello Hero,</p>
+      <div style="background-color: #000000; color: #ffffff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif; border: 1px solid #333333;">
+        <h2 style="color: #f59e0b; text-align: center; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px;">Password Reset Successful</h2>
+        <p>Hello,</p>
         <p>Your password has been successfully reset.</p>
         <p>If you did not make this change, please contact our support team immediately.</p>
-        <p>Regards,<br>The Starry Comics Team</p>
+        <p>Regards,<br>The Fashion Store Team</p>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #333333; text-align: center;">
+          <p style="font-size: 12px; color: #666666;">This is an automated message. Please do not reply to this email.</p>
+        </div>
       </div>
     `;
 
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Starry Comics" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"Fashion Store" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: 'Your Password Has Been Reset',
       html: message,

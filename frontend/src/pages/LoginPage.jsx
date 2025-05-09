@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import axios from 'axios'
 import GoogleButton from '../components/GoogleButton';
+import { forgotPassword } from '../api/auth'; // Import the new function
 
 const LoginPage = () => {
   const [email, setEmail] = useState("")
@@ -130,19 +131,15 @@ const LoginPage = () => {
       setForgotEmailError("");
       setForgotEmailLoading(true);
       
-      // Always use the hardcoded backend URL to avoid dependency on env variables
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/users/forgot-password`, { 
-        email: forgotEmail 
-      });
+      // Use our imported forgotPassword function instead of direct axios call
+      await forgotPassword(forgotEmail);
       
-      // Always show success even if there might be a backend error
-      // This is for security reasons (email enumeration prevention)
+      // Always show success for security (email enumeration prevention)
       setForgotEmailSent(true);
     } catch (err) {
       console.error("Password reset error:", err);
       
       // Still show success message even on error
-      // This prevents attackers from determining if an email exists
       setForgotEmailSent(true);
     } finally {
       setForgotEmailLoading(false);

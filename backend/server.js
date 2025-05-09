@@ -56,9 +56,25 @@ connectDB();
 
 const app = express();
 
-// CORS Configuration - Updated to properly handle CORS issues
+// CORS Configuration - Updated to properly handle CORS issues with multiple origins
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // Allow your frontend origin
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL || 'http://localhost:5173',
+      'https://e-commerce-fashion-store-ykdu.vercel.app',
+      'https://e-commerce-fashion-store-gules.vercel.app'
+    ];
+    
+    // Allow requests with no origin (like mobile apps, curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked request from:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true, // Allow cookies/credentials to be sent
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'] // Allowed headers
