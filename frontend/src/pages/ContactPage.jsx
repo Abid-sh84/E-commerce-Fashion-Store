@@ -12,6 +12,10 @@ const ContactPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isVisible, setIsVisible] = useState({});
+  const [showModal, setShowModal] = useState(false);
+
+  // Function to toggle modal visibility
+  const toggleModal = () => setShowModal(!showModal);
 
   useEffect(() => {
     // Initialize intersection observer for animations
@@ -107,6 +111,145 @@ const ContactPage = () => {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Mobile Contact Button (visible only on small screens) */}
+        <div className="md:hidden fixed bottom-6 right-6 z-50">
+          <button
+            onClick={toggleModal}
+            className="h-14 w-14 rounded-full bg-amber-600 text-white shadow-lg flex items-center justify-center"
+            aria-label="Contact Us"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Mobile Contact Form Modal */}
+        {showModal && (
+          <div className="md:hidden fixed inset-0 z-50 overflow-y-auto">
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={toggleModal}></div>
+            <div className="relative min-h-screen flex items-center justify-center p-4">
+              <div className="relative bg-neutral-900 w-full max-w-md p-6 rounded-lg shadow-xl border border-neutral-800 animate-slideUp">
+                <button 
+                  onClick={toggleModal}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                  aria-label="Close"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+
+                <h2 className="text-2xl font-bold text-white mb-6 relative z-10">Send Us a Message</h2>
+                
+                {isSubmitted ? (
+                  <div className="text-center py-8 relative z-10">
+                    <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full mx-auto flex items-center justify-center mb-6">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-3">Message Sent!</h3>
+                    <p className="text-gray-300 mb-6">Thank you for reaching out. Our team will review your message and get back to you as soon as possible.</p>
+                    <button 
+                      onClick={() => {
+                        setIsSubmitted(false);
+                        toggleModal();
+                      }} 
+                      className="px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-medium rounded-lg transition-all transform hover:scale-105 duration-300"
+                    >
+                      Close
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
+                    <div className="form-group">
+                      <label htmlFor="modal-name" className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
+                      <input
+                        type="text"
+                        id="modal-name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        className="w-full bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 p-3 placeholder-gray-500"
+                        placeholder="Your name"
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="modal-email" className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                      <input
+                        type="email"
+                        id="modal-email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 p-3 placeholder-gray-500"
+                        placeholder="your@email.com"
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="modal-subject" className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+                      <input
+                        type="text"
+                        id="modal-subject"
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        required
+                        className="w-full bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 p-3 placeholder-gray-500"
+                        placeholder="How can we help you?"
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="modal-message" className="block text-sm font-medium text-gray-300 mb-2">Message</label>
+                      <textarea
+                        id="modal-message"
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        required
+                        rows={4}
+                        className="w-full bg-neutral-800 text-white border border-neutral-700 rounded-lg focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 p-3 placeholder-gray-500"
+                        placeholder="Tell us what you need assistance with..."
+                      ></textarea>
+                    </div>
+                    
+                    <div className="form-group">
+                      <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full px-6 py-3 bg-amber-700 hover:bg-amber-600 text-white font-medium rounded-lg transition-all transform hover:scale-[1.02] hover:shadow-lg duration-300 flex items-center justify-center"
+                      >
+                        {isLoading ? (
+                          <>
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Sending...
+                          </>
+                        ) : (
+                          <>Send Message</>
+                        )}
+                      </button>
+                    </div>
+                    {error && (
+                      <div className="text-red-500 text-sm mt-4">
+                        {error}
+                      </div>
+                    )}
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Contact Info Section */}
         <section className="mb-24 animate-on-scroll" id="contact-info-section">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
@@ -188,7 +331,7 @@ const ContactPage = () => {
               </div>
             </div>
             
-            <div className={`lg:col-span-3 ${isVisible['contact-form-section'] ? 'animate-slideFromRight' : 'opacity-0'}`}>
+            <div className={`hidden md:block lg:col-span-3 ${isVisible['contact-form-section'] ? 'animate-slideFromRight' : 'opacity-0'}`}>
               <div className="bg-neutral-900 p-8 lg:p-10 border border-neutral-800 rounded-lg shadow-lg relative overflow-hidden">
                 {/* Background decoration */}
                 <div className="absolute top-0 right-0 w-40 h-40 bg-amber-600/5 rounded-full blur-3xl"></div>
@@ -377,6 +520,11 @@ const ContactPage = () => {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(50px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
 
         .animate-fadeIn {
           animation: fadeIn 0.8s ease-out forwards;
@@ -396,6 +544,10 @@ const ContactPage = () => {
         
         .animate-fadeInUp {
           animation: fadeInUp 0.8s ease-out forwards;
+        }
+        
+        .animate-slideUp {
+          animation: slideUp 0.5s ease-out forwards;
         }
         
         .delay-0 {

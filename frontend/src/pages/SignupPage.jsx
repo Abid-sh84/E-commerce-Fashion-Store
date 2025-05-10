@@ -12,73 +12,9 @@ const SignupPage = () => {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [showStars, setShowStars] = useState(true)
 
   const { signup, initiateGoogleLogin } = useAuth()
   const navigate = useNavigate()
-  
-  // Create stars effect
-  useEffect(() => {
-    const createStars = () => {
-      if (!showStars) return;
-      
-      const starsContainer = document.getElementById('signup-stars-container');
-      if (!starsContainer) return;
-      
-      // Clear previous stars
-      starsContainer.innerHTML = '';
-      
-      // Create new stars
-      for (let i = 0; i < 100; i++) {
-        const star = document.createElement('div');
-        // Create different types of stars for variety
-        if (i % 5 === 0) {
-          // Larger, brighter stars
-          star.className = 'star glow';
-          star.style.width = `${Math.random() * 4 + 2}px`;
-          star.style.height = star.style.width;
-          star.style.boxShadow = '0 0 4px 1px rgba(255, 255, 255, 0.6)';
-        } else if (i % 7 === 0) {
-          // Colorful stars
-          star.className = 'star colored';
-          star.style.width = `${Math.random() * 3 + 1}px`;
-          star.style.height = star.style.width;
-          const colors = ['#fcf0bc', '#e0f7fa', '#fff8e1', '#f3e5f5'];
-          star.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        } else {
-          // Regular stars
-          star.className = 'star';
-          star.style.width = `${Math.random() * 3 + 0.5}px`;
-          star.style.height = star.style.width;
-        }
-        
-        star.style.left = `${Math.random() * 100}vw`;
-        star.style.top = `${Math.random() * 100}vh`;
-        star.style.animationDuration = `${Math.random() * 5 + 1}s`;
-        star.style.animationDelay = `${Math.random() * 5}s`;
-        starsContainer.appendChild(star);
-      }
-      
-      // Add a few shooting stars
-      for (let i = 0; i < 3; i++) {
-        const shootingStar = document.createElement('div');
-        shootingStar.className = 'shooting-star';
-        shootingStar.style.left = `${Math.random() * 100}vw`;
-        shootingStar.style.top = `${Math.random() * 50}vh`;
-        shootingStar.style.width = `${Math.random() * 60 + 30}px`;
-        shootingStar.style.animationDelay = `${Math.random() * 20 + 5}s`;
-        shootingStar.style.animationDuration = `${Math.random() * 2 + 1}s`;
-        starsContainer.appendChild(shootingStar);
-      }
-    };
-
-    createStars();
-    window.addEventListener('resize', createStars);
-    
-    return () => {
-      window.removeEventListener('resize', createStars);
-    };
-  }, [showStars]);
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -113,25 +49,14 @@ const SignupPage = () => {
 
   return (
     <div className="min-h-dvh bg-black text-white relative py-12 px-4">
-      {/* Stars container */}
-      <div id="signup-stars-container" className="fixed inset-0 pointer-events-none overflow-hidden"></div>
-      
-      {/* Cosmic rays */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 left-1/3 w-px h-dvh bg-blue-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(96, 165, 250, 0.5)'}}></div>
-        <div className="absolute top-0 left-2/3 w-px h-dvh bg-purple-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(192, 132, 252, 0.5)'}}></div>
-      </div>
-
       <div className="max-w-md mx-auto relative z-10">
         <div className="relative">
-          {/* Glow effect behind the card */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-amber-600/20 via-transparent to-amber-600/20 rounded-lg blur-lg"></div>
           
-          <div className="relative bg-black/70 backdrop-blur-sm border border-neutral-800/80 p-8 rounded-lg shadow-xl">
+          <div className="relative bg-black border border-neutral-700 p-8 rounded-lg shadow-md">
             <div className="text-center mb-8">
-              <h2 className="relative text-3xl font-bold mb-4 uppercase tracking-wider animate-fadeIn">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-amber-400 to-amber-200">Create Account</span>
-                <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 h-[3px] w-16 bg-gradient-to-r from-amber-400 to-amber-600 animate-scaleIn"></span>
+              <h2 className="text-3xl font-bold mb-4 uppercase tracking-wider">
+                <span className="text-white">Create Account</span>
+                <div className="h-0.5 w-24 bg-gradient-to-r from-amber-400 to-amber-600 mx-auto mb-6 animate-scaleIn"></div>
               </h2>
               <p className="text-gray-400 max-w-xs mx-auto mt-4">
                 Join us to explore our premium collection
@@ -252,13 +177,8 @@ const SignupPage = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full relative overflow-hidden px-8 py-4 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-medium uppercase tracking-wider border-none rounded-md transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg flex items-center justify-center"
+                  className="w-full px-8 py-4 bg-amber-600 hover:bg-amber-500 text-white font-medium uppercase tracking-wider border-none rounded-md transition-all duration-300 flex items-center justify-center"
                 >
-                  {/* Button shine effect */}
-                  <span className="absolute inset-0 overflow-hidden">
-                    <span className="absolute -translate-x-full w-1/4 h-full top-0 bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg] animate-button-shine"></span>
-                  </span>
-                  
                   {isLoading ? (
                     <>
                       <svg
@@ -277,17 +197,17 @@ const SignupPage = () => {
                       Creating Account...
                     </>
                   ) : (
-                    <span className="relative z-10">Create Account</span>
+                    <span>Create Account</span>
                   )}
                 </button>
               </div>
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-neutral-800"></div>
+                  <div className="w-full border-t border-neutral-700"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-neutral-900 text-neutral-400">
+                  <span className="px-2 bg-black text-neutral-400">
                     Or continue with
                   </span>
                 </div>
@@ -297,7 +217,7 @@ const SignupPage = () => {
                 <GoogleButton 
                   onClick={initiateGoogleLogin} 
                   text="Sign up with Google"
-                  className="w-full bg-gradient-to-r from-neutral-800 to-neutral-900 hover:from-neutral-700 hover:to-neutral-800 border border-neutral-700 text-white font-medium rounded-md transition-all transform hover:scale-[1.02] hover:shadow-lg"
+                  className="w-full bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white font-medium rounded-md transition-all"
                 />
               </div>
 
@@ -313,96 +233,6 @@ const SignupPage = () => {
           </div>
         </div>
       </div>
-      
-      {/* Stars animation styles */}
-      <style jsx global>{`
-        @keyframes twinkle {
-          0% { opacity: 0.3; }
-          50% { opacity: 1; }
-          100% { opacity: 0.3; }
-        }
-        
-        @keyframes colored-twinkle {
-          0% { opacity: 0.1; }
-          50% { opacity: 0.8; }
-          100% { opacity: 0.1; }
-        }
-        
-        @keyframes glow {
-          0% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.1); }
-          100% { opacity: 0.4; transform: scale(1); }
-        }
-        
-        @keyframes shooting {
-          0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 1; }
-          100% { transform: translateX(-100px) translateY(100px) rotate(-45deg); opacity: 0; }
-        }
-        
-        .star {
-          position: absolute;
-          background-color: white;
-          border-radius: 50%;
-          animation: twinkle linear infinite;
-        }
-        
-        .star.colored {
-          animation: colored-twinkle linear infinite;
-        }
-        
-        .star.glow {
-          animation: glow linear infinite;
-        }
-        
-        .shooting-star {
-          position: absolute;
-          height: 1px;
-          background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1));
-          transform: rotate(-45deg);
-          animation: shooting linear infinite;
-        }
-        
-        /* Add small dots in a grid pattern for background texture */
-        #signup-stars-container:before {
-          content: '';
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          background-image: 
-            radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px),
-            radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
-          background-size: 30px 30px, 15px 15px;
-          background-position: 0 0, 15px 15px;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        @keyframes scaleIn {
-          from { transform: scaleX(0); }
-          to { transform: scaleX(1); }
-        }
-
-        .animate-scaleIn {
-          animation: scaleIn 0.8s ease-out forwards;
-        }
-
-        @keyframes button-shine {
-          0% { transform: translateX(-100%); }
-          60% { transform: translateX(100%); }
-          100% { transform: translateX(100%); }
-        }
-
-        .animate-button-shine {
-          animation: button-shine 3s infinite;
-        }
-      `}</style>
     </div>
   )
 }

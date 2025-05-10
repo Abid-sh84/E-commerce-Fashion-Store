@@ -10,74 +10,10 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
   const [tokenValid, setTokenValid] = useState(true)
-  const [showStars, setShowStars] = useState(true)
   const [tokenVerifying, setTokenVerifying] = useState(true) // Add loading state for token verification
 
   const navigate = useNavigate()
   const { token } = useParams()
-
-  // Create stars effect
-  useEffect(() => {
-    const createStars = () => {
-      if (!showStars) return;
-      
-      const starsContainer = document.getElementById('reset-stars-container');
-      if (!starsContainer) return;
-      
-      // Clear previous stars
-      starsContainer.innerHTML = '';
-      
-      // Create stars
-      for (let i = 0; i < 100; i++) {
-        const star = document.createElement('div');
-          
-        if (i % 5 === 0) {
-          // Larger, brighter stars
-          star.className = 'star glow';
-          star.style.width = `${Math.random() * 4 + 2}px`;
-          star.style.height = star.style.width;
-          star.style.boxShadow = '0 0 4px 1px rgba(255, 255, 255, 0.6)';
-        } else if (i % 7 === 0) {
-          // Colorful stars
-          star.className = 'star colored';
-          star.style.width = `${Math.random() * 3 + 1}px`;
-          star.style.height = star.style.width;
-          const colors = ['#fcf0bc', '#e0f7fa', '#fff8e1', '#f3e5f5'];
-          star.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        } else {
-          // Regular stars
-          star.className = 'star';
-          star.style.width = `${Math.random() * 3 + 0.5}px`;
-          star.style.height = star.style.width;
-        }
-        
-        star.style.left = `${Math.random() * 100}vw`;
-        star.style.top = `${Math.random() * 100}vh`;
-        star.style.animationDuration = `${Math.random() * 5 + 1}s`;
-        star.style.animationDelay = `${Math.random() * 5}s`;
-        starsContainer.appendChild(star);
-      }
-      
-      // Add a few shooting stars
-      for (let i = 0; i < 3; i++) {
-        const shootingStar = document.createElement('div');
-        shootingStar.className = 'shooting-star';
-        shootingStar.style.left = `${Math.random() * 100}vw`;
-        shootingStar.style.top = `${Math.random() * 50}vh`;
-        shootingStar.style.width = `${Math.random() * 100 + 50}px`;
-        shootingStar.style.animationDuration = `${Math.random() * 3 + 2}s`;
-        shootingStar.style.animationDelay = `${Math.random() * 15}s`;
-        starsContainer.appendChild(shootingStar);
-      }
-    };
-
-    createStars();
-    window.addEventListener('resize', createStars);
-    
-    return () => {
-      window.removeEventListener('resize', createStars);
-    };
-  }, [showStars]);
 
   // Verify token validity
   useEffect(() => {
@@ -154,15 +90,6 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="min-h-dvh bg-black text-white relative py-12 px-4 sm:px-6 lg:px-8">
-      {/* Stars container */}
-      <div id="reset-stars-container" className="fixed inset-0 pointer-events-none overflow-hidden"></div>
-      
-      {/* Cosmic rays */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-0 left-1/3 w-px h-dvh bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(251, 191, 36, 0.5)'}}></div>
-        <div className="absolute top-0 left-2/3 w-px h-dvh bg-amber-400 opacity-20" style={{boxShadow: '0 0 20px 5px rgba(251, 191, 36, 0.5)'}}></div>
-      </div>
-      
       <div className="max-w-md w-full space-y-8 relative z-10 mx-auto">
         {/* Glowing border effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-amber-600/30 via-amber-500/30 to-amber-400/30 rounded-xl blur-lg"></div>
@@ -339,54 +266,8 @@ const ResetPasswordPage = () => {
         </div>
       </div>
 
-      {/* Add CSS for stars animation */}
+      {/* Add CSS for animations */}
       <style jsx global>{`
-        @keyframes twinkle {
-          0% { opacity: 0.3; }
-          50% { opacity: 1; }
-          100% { opacity: 0.3; }
-        }
-        
-        @keyframes colored-twinkle {
-          0% { opacity: 0.1; }
-          50% { opacity: 0.8; }
-          100% { opacity: 0.1; }
-        }
-        
-        @keyframes glow {
-          0% { opacity: 0.4; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.1); }
-          100% { opacity: 0.4; transform: scale(1); }
-        }
-        
-        .star {
-          position: absolute;
-          background-color: white;
-          border-radius: 50%;
-          animation: twinkle linear infinite;
-        }
-        
-        .star.colored {
-          animation: colored-twinkle linear infinite;
-        }
-        
-        .star.glow {
-          animation: glow linear infinite;
-        }
-
-        @keyframes shooting {
-          0% { transform: translateX(0) translateY(0) rotate(-45deg); opacity: 1; }
-          100% { transform: translateX(-100px) translateY(100px) rotate(-45deg); opacity: 0; }
-        }
-        
-        .shooting-star {
-          position: absolute;
-          height: 1px;
-          background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1));
-          transform: rotate(-45deg);
-          animation: shooting linear infinite;
-        }
-
         @keyframes float {
           0% { transform: translateY(0px); }
           50% { transform: translateY(-10px); }

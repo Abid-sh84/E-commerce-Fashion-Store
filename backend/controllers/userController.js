@@ -541,7 +541,8 @@ const forgotPassword = asyncHandler(async (req, res) => {
   await user.save();
 
   // Create reset URL (frontend URL that can handle token)
-  const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+
+  const resetUrl = `https://e-commerce-fashion-store-ykdu.vercel.app/reset-password/${resetToken}`;
   
   // Send response first to prevent timeout - IMPORTANT for serverless functions
   res.status(200).json({
