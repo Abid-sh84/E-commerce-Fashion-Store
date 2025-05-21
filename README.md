@@ -138,9 +138,7 @@ Fashion Store/
 - Performance optimizations with React Query
 - More payment gateway integrations
 
-## License
 
-MIT
 
 
 
