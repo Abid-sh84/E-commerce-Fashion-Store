@@ -2,16 +2,26 @@
 
 A modern e-commerce web application for fashion products, built with a robust technology stack and contemporary design aesthetics.
 
+[![Built with React](https://img.shields.io/badge/Built%20with-React-61DAFB?style=flat&logo=react&logoColor=white)](https://reactjs.org/)
+[![Frontend](https://img.shields.io/badge/frontend-Vite-blue?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Backend](https://img.shields.io/badge/backend-Express.js-black?style=flat&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/database-MongoDB-green?style=flat&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Deployed with Vercel](https://img.shields.io/badge/Deployed%20with-Vercel-black?style=flat&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fecommerce-fashion.vercel.app)](https://e-commerce-fashion-store-ykdu.vercel.app/)
+[![Last Commit](https://img.shields.io/github/last-commit/Abid-sh84/E-commerce-Fashion-Store?color=brightgreen)](https://github.com/Abid-sh84/E-commerce-Fashion-Store/commits)
+[![License](https://img.shields.io/github/license/Abid-sh84/E-commerce-Fashion-Store?color=yellow)](./LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/Abid-sh84/E-commerce-Fashion-Store/releases)
+
+---
+
 ## Features
 
-- Elegant modern UI with dark theme and amber accents
-- Advanced product browsing with filtering and search
-- Google-based user authentication
-- Cart and wishlist functionality
-- User profiles with order history
-- Admin dashboard for managing products, orders, and users
-- Secure checkout with multiple payment options (PayPal)
-- Fully responsive design for mobile and desktop
+- ⚡ Modern UI with responsive design
+- 🔐 Google OAuth 2.0 authentication
+- 🛒 Product listing, cart, and wishlist
+- 📦 Admin dashboard to manage products & orders
+- 💳 PayPal integration for secure checkout
+- 🌐 Vercel deployment-ready
 
 ## Technology Stack
 
@@ -128,9 +138,7 @@ Fashion Store/
 - Performance optimizations with React Query
 - More payment gateway integrations
 
-## License
 
-MIT
 
 
 
