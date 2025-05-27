@@ -505,10 +505,132 @@ const ProfilePage = () => {
   const handleSelectAvatar = (avatar) => {
     setSelectedAvatar(avatar.image);
     setShowAvatarModal(false);
+    
+    // Show success notification
+    const successToast = document.getElementById('success-toast');
+    if (successToast) {
+      successToast.textContent = `Avatar changed to ${avatar.name}`;
+      successToast.classList.remove('hidden');
+      setTimeout(() => {
+        successToast.classList.add('hidden');
+      }, 3000);
+    }
   };
+
+  // Custom CSS for perfect circle avatars
+  const avatarStyles = `
+    /* Avatar Grid in Modal */
+    .avatar-container {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;
+    }
+    
+    .avatar-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 9999px; /* Using a large value to ensure perfect circle */
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #525252;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      aspect-ratio: 1/1;
+    }
+    
+    .avatar-circle:hover {
+      transform: scale(1.05);
+      border-color: #d97706;
+    }
+    
+    .avatar-circle.selected {
+      border: 3px solid #d97706;
+      box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.3);
+    }
+    
+    .avatar-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+    }
+    
+    .avatar-selected-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(217, 119, 6, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Sidebar Avatar */
+    .avatar-sidebar-container {
+      width: 96px;
+      height: 96px;
+      position: relative;
+      margin-bottom: 16px;
+    }
+    
+    .avatar-sidebar-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #d97706;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(217, 119, 6, 0.3);
+    }
+    
+    /* Profile Page Avatar */
+    .profile-avatar-container {
+      width: 64px;
+      height: 64px;
+      position: relative;
+    }
+    
+    .profile-avatar-circle {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 2px solid #d97706;
+    }
+    
+    @media (max-width: 640px) {
+      .avatar-container {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .avatar-sidebar-container {
+        width: 80px;
+        height: 80px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .avatar-container {
+        width: 60px;
+        height: 60px;
+      }
+      
+      .avatar-sidebar-container {
+        width: 72px;
+        height: 72px;
+      }
+    }
+  `;
 
   return (
     <div className="min-h-dvh bg-neutral-950 text-white py-12">
+      <style>{avatarStyles}</style>
       <div id="success-toast" className="fixed top-24 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-500 hidden z-50">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -518,17 +640,17 @@ const ProfilePage = () => {
 
       {/* Avatar Selection Modal */}
       {showAvatarModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm p-4">
           <div 
             ref={avatarModalRef} 
-            className="bg-neutral-900 rounded-lg shadow-xl border border-neutral-700 w-full max-w-2xl overflow-hidden"
-          >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Choose Your Avatar</h3>
+            className="bg-neutral-900 rounded-xl shadow-xl border border-neutral-700 w-full max-w-sm md:max-w-3xl overflow-hidden mx-auto"
+          >              <div className="p-4 md:p-6">
+              <div className="flex justify-between items-center border-b border-neutral-700 pb-3 mb-4">
+                <h3 className="text-lg md:text-xl font-bold text-amber-500">Choose Your Avatar</h3>
                 <button 
                   onClick={() => setShowAvatarModal(false)}
                   className="text-gray-400 hover:text-white"
+                  aria-label="Close"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -536,65 +658,67 @@ const ProfilePage = () => {
                 </button>
               </div>
               
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto p-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto p-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#525252 #262626' }}>
                 {avatars.map((avatar) => (
-                  <button
-                    key={avatar.id}
-                    type="button"
-                    onClick={() => handleSelectAvatar(avatar)}
-                    className={`relative overflow-hidden rounded-lg transform transition-all duration-300 ${
-                      selectedAvatar === avatar.image
-                        ? "ring-2 ring-amber-500 scale-105"
-                        : "hover:ring-1 hover:ring-amber-400 hover:scale-102"
-                    }`}
-                  >
-                    <div className="p-4 bg-neutral-800 text-center overflow-hidden group">
-                      <div className="relative w-full overflow-hidden rounded-full mb-3 aspect-square">
-                        <div className={`absolute inset-0 rounded-full ${selectedAvatar === avatar.image ? 'bg-gradient-to-r from-amber-500/30 to-amber-600/30' : ''}`}></div>
-                        <img
-                          src={avatar.image}
-                          alt={avatar.name}
-                          className="w-full h-full object-cover rounded-full aspect-square relative z-10 transition-all duration-300 group-hover:scale-110"
-                        />
-                      </div>
-                      <p className="text-xs font-semibold text-white truncate">{avatar.name}</p>
-                    </div>
-                    {selectedAvatar === avatar.image && (
-                      <div className="absolute inset-0 bg-amber-700/20 flex items-center justify-center">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-8 w-8 text-amber-500 drop-shadow-lg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
+                  <div key={avatar.id} className="flex flex-col items-center">
+                    <button
+                      type="button"
+                      onClick={() => handleSelectAvatar(avatar)}
+                      className="group focus:outline-none"
+                      aria-label={`Select ${avatar.name} avatar`}
+                    >
+                      <div className="avatar-container mx-auto mb-2">
+                        <div className={`avatar-circle ${selectedAvatar === avatar.image ? 'selected' : ''}`}>
+                          <img
+                            src={avatar.image}
+                            alt={avatar.name}
+                            className="avatar-image"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = DEFAULT_AVATAR;
+                            }}
                           />
-                        </svg>
+                          {selectedAvatar === avatar.image && (
+                            <div className="avatar-selected-overlay">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-white drop-shadow-md"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </button>
+                    </button>
+                    <p className="text-xs font-medium text-white text-center mt-1 truncate w-full px-1">{avatar.name}</p>
+                  </div>
                 ))}
               </div>
               
-              <div className="flex justify-end mt-6">
+              <div className="flex justify-end mt-4 md:mt-6 space-x-3 border-t border-neutral-700 pt-3">
                 <button
                   type="button"
                   onClick={() => setShowAvatarModal(false)}
-                  className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg transition-all duration-300 mr-3"
+                  className="px-3 py-2 md:px-4 md:py-2 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg transition-all duration-300 text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAvatarModal(false)}
-                  className="px-4 py-2 bg-amber-700 hover:bg-amber-600 text-white font-medium rounded-lg transition-all duration-300"
+                  className="px-3 py-2 md:px-4 md:py-2 bg-amber-700 hover:bg-amber-600 text-white font-medium rounded-lg transition-all duration-300 text-sm"
                 >
-                  Select Avatar
+                  Close
                 </button>
               </div>
             </div>
@@ -823,12 +947,14 @@ const ProfilePage = () => {
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden shadow-lg">
               <div className="p-6">
                 <div className="flex flex-col items-center mb-6">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-amber-500 mb-4">
-                    <img
-                      src={selectedAvatar || DEFAULT_AVATAR}
-                      alt={currentAvatarObject.name}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="avatar-sidebar-container">
+                    <div className="avatar-sidebar-circle">
+                      <img
+                        src={selectedAvatar || DEFAULT_AVATAR}
+                        alt={currentAvatarObject.name}
+                        className="avatar-image"
+                      />
+                    </div>
                   </div>
                   
                   <h2 className="text-xl font-bold text-white">{name || currentUser?.name || "Your Name"}</h2>
@@ -1027,12 +1153,14 @@ const ProfilePage = () => {
                           Avatar
                         </label>
                         <div className="flex items-center space-x-4">
-                          <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-amber-500">
-                            <img
-                              src={selectedAvatar || DEFAULT_AVATAR}
-                              alt={currentAvatarObject.name}
-                              className="w-full h-full object-cover"
-                            />
+                          <div className="profile-avatar-container">
+                            <div className="profile-avatar-circle">
+                              <img
+                                src={selectedAvatar || DEFAULT_AVATAR}
+                                alt={currentAvatarObject.name}
+                                className="avatar-image"
+                              />
+                            </div>
                           </div>
                           <div>
                             <p className="text-sm text-gray-300 mb-2">Current: <span className="text-amber-500">{currentAvatarObject.name}</span></p>
