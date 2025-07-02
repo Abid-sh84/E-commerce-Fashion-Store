@@ -137,6 +137,7 @@ Fashion Store/
 - Email notifications for order status updates
 - Performance optimizations with React Query
 - More payment gateway integrations
+- Adding Vendor pannel
 
 
 
