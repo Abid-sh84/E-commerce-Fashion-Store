@@ -138,6 +138,7 @@ Fashion Store/
 - Performance optimizations with React Query
 - More payment gateway integrations
 - Adding Vendor pannel (under development)
+- Vendor pannel deployement on vercel
 
 
 
